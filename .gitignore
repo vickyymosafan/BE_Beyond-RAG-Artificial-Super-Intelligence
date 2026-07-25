@@ -1,6 +1,19 @@
+# Dependencies
 node_modules/
+
+# Cloudflare Wrangler & Build
 dist/
 .wrangler/
 *.log
+
+# Environment variables & Local Credentials
 .env
 .env.local
+.env.*
+.dev.vars
+.dev.vars.*
+
+# Local Test Output & Logs
+evaluation_results.json
+test_process.txt
+test_query.ps1

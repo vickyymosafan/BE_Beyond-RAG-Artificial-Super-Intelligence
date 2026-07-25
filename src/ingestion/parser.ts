@@ -1,3 +1,4 @@
+import { neon } from '@neondatabase/serverless';
 import type { CloudflareBindings } from '../types';
 
 interface ParseResult {
@@ -76,14 +77,10 @@ async function extractDocxImages(buffer: ArrayBuffer, docId: string, env: Cloudf
   const images: string[] = [];
   let imgIndex = 0;
 
-  const htmlResult = await (convertToHtml as any)({
+  await (convertToHtml as any)({
     arrayBuffer: buffer,
-    convertImage: async (img: { stream: () => Promise<ReadableStream>; contentType: string | null }) => {
+    convertImage: async () => {
       const imgId = `${docId}:img:${imgIndex++}`;
-      const stream = await img.stream();
-      await env.R2_IMAGES.put(`images/${docId}/${imgId}`, stream, {
-        httpMetadata: { contentType: img.contentType || 'image/png' },
-      });
       images.push(imgId);
       return { src: '' };
     },
@@ -93,66 +90,73 @@ async function extractDocxImages(buffer: ArrayBuffer, docId: string, env: Cloudf
 }
 
 async function extractDocxTables(buffer: ArrayBuffer, docId: string, env: CloudflareBindings, pages: ParseResult['pages']): Promise<string[]> {
-  const raw = new TextDecoder().decode(buffer);
+  const sql = neon(env.DATABASE_URL);
+  const { convertToHtml } = await import('mammoth');
   const tableIds: string[] = [];
-  const lines = raw.split('\n');
-  let currentPage = 0;
-  let inTable = false;
-  let tableBuffer: string[] = [];
+  try {
+    const htmlResult = await convertToHtml({ arrayBuffer: buffer });
+    const html = htmlResult.value || '';
+    const tableMatches = html.match(/<table[\s\S]*?<\/table>/gi) || [];
 
-  for (const line of lines) {
-    if (line.includes('\f')) currentPage++;
-    if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
-      inTable = true;
-      tableBuffer.push(line.trim());
-    } else if (inTable && tableBuffer.length > 0) {
-      if (tableBuffer.length >= 2) {
-        const tableMarkdown = tableBuffer.join('\n');
-        const tableId = `${docId}:tbl:${Date.now()}:${tableIds.length}`;
-        await env.DB.prepare(
-          `INSERT INTO extracted_tables (id, doc_id, page_number, table_data, table_markdown) VALUES (?, ?, ?, ?, ?)`
-        ).bind(tableId, docId, currentPage, tableMarkdown, tableMarkdown).run();
-        tableIds.push(tableId);
-        if (pages[currentPage]) pages[currentPage].tables.push(tableId);
+    const tablesToInsert: { id: string; markdown: string }[] = [];
+
+    for (let i = 0; i < tableMatches.length; i++) {
+      const tableHtml = tableMatches[i];
+      const rows = tableHtml.match(/<tr[\s\S]*?<\/tr>/gi) || [];
+      const mdRows: string[] = [];
+      for (const row of rows) {
+        const cells = row.match(/<t[dh][\s\S]*?<\/t[dh]>/gi) || [];
+        const cellTexts = cells.map(c => c.replace(/<[^>]+>/g, '').trim());
+        if (cellTexts.length > 0) {
+          mdRows.push(`| ${cellTexts.join(' | ')} |`);
+        }
       }
-      tableBuffer = [];
-      inTable = false;
+      if (mdRows.length >= 1) {
+        const tableMarkdown = mdRows.join('\n');
+        const tableId = `${docId}:tbl:${Date.now()}:${i}`;
+        tablesToInsert.push({ id: tableId, markdown: tableMarkdown });
+        tableIds.push(tableId);
+        if (pages[0]) pages[0].tables.push(tableId);
+      }
     }
+
+    if (tablesToInsert.length > 0) {
+      const placeholders: string[] = [];
+      const params: string[] = [];
+      let pi = 1;
+      for (const t of tablesToInsert) {
+        placeholders.push(`($${pi}, $${pi + 1}, 1, $${pi + 2}, $${pi + 3})`);
+        params.push(t.id, docId, t.markdown, t.markdown);
+        pi += 4;
+      }
+      await sql.query(
+        `INSERT INTO extracted_tables (id, doc_id, page_number, table_data, table_markdown)
+         VALUES ${placeholders.join(',')}`,
+        params
+      );
+    }
+  } catch (err) {
+    console.warn('Docx table extraction skipped:', err);
   }
 
   return tableIds;
 }
 
 function detectPdfImages(buffer: ArrayBuffer, docId: string): string[] {
-  const raw = new TextDecoder('utf-8', { fatal: false }).decode(buffer);
+  const slice = buffer.byteLength > 500000 ? buffer.slice(0, 500000) : buffer;
+  const raw = new TextDecoder('utf-8', { fatal: false }).decode(slice);
   const images: string[] = [];
-  const imgRefs = raw.match(/\/Im\d+\s+\d+\s+\d+\s+R/g) || [];
-  for (let i = 0; i < Math.min(imgRefs.length, 20); i++) {
+  const imgRefs = raw.match(/\/Im\d+/g) || [];
+  const uniqueCount = Math.min(new Set(imgRefs).size, 20);
+  for (let i = 0; i < uniqueCount; i++) {
     images.push(`${docId}:img:pdf:${i}`);
   }
   return images;
 }
 
 async function extractTextFromPdf(buffer: ArrayBuffer): Promise<string> {
-  const bytes = new Uint8Array(buffer);
-  const decoder = new TextDecoder('utf-8', { fatal: false });
-  const raw = decoder.decode(bytes);
-
-  const textParts: string[] = [];
-  const streamRegex = /stream\s*([\s\S]*?)\s*endstream/g;
-  const textRegex = /(?:Tj|TJ|\(([^)]*)\))/g;
-
-  let match: RegExpExecArray | null;
-  while ((match = streamRegex.exec(raw)) !== null) {
-    const streamData = match[1];
-    const textMatch = streamData.match(textRegex);
-    if (textMatch) {
-      for (const t of textMatch) {
-        const content = t.replace(/^\(|\)$/g, '');
-        textParts.push(content);
-      }
-    }
-  }
-
-  return textParts.join(' ') || 'PDF text extraction limited. Gunakan pipeline eksternal untuk parsing lengkap.';
+  const { extractText } = await import('unpdf');
+  const { text } = await extractText(new Uint8Array(buffer), { mergePages: false });
+  const pages = (Array.isArray(text) ? text : [text]).filter(Boolean).map(t => t.trim());
+  return pages.join('\f') || 'PDF text extraction returned empty content.';
 }

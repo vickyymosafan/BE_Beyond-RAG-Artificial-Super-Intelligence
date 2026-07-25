@@ -14,7 +14,7 @@ export async function getFromCache(
   const queryHash = await hashQuery(query);
 
   const exact = await env.KV_CACHE.get<CacheEntry>(`search:${queryHash}`, 'json');
-  if (exact) {
+  if (exact && exact.response && !exact.response.includes('Maaf')) {
     exact.hitCount++;
     await updatePopAndTTL(exact, env, `search:${queryHash}`);
     await trackCacheHit(env, 'exact');
@@ -29,7 +29,7 @@ export async function getFromCache(
 
   for (const key of cacheKeys.keys) {
     const entry = await env.KV_CACHE.get<CacheEntry>(key.name, 'json');
-    if (!entry) continue;
+    if (!entry || !entry.response || entry.response.includes('Maaf')) continue;
 
     const similarity = cosineSimilarity(queryEmb, entry.queryEmbedding);
     if (similarity > SEMANTIC_THRESHOLD && similarity > bestScore) {
@@ -110,4 +110,14 @@ async function trackCacheHit(
   const key = `stats:cache:${today}:${type}`;
   const count = await env.KV_CACHE.get<number>(key, 'json');
   await env.KV_CACHE.put(key, JSON.stringify((count || 0) + 1), { expirationTtl: 86400 * 30 });
+}
+
+export async function clearAllCache(env: CloudflareBindings): Promise<number> {
+  const keys = await env.KV_CACHE.list();
+  let deleted = 0;
+  for (const k of keys.keys) {
+    await env.KV_CACHE.delete(k.name);
+    deleted++;
+  }
+  return deleted;
 }

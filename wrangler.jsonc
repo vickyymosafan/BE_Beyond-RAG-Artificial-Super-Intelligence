@@ -9,33 +9,16 @@
     "enabled": true
   },
   "vars": {
-    "ENVIRONMENT": "production"
+    "ENVIRONMENT": "production",
+    "JWT_SECRET": "dev-secret-change-in-production"
   },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "rag-ai-db",
-      "database_id": "rag-ai-db"
-    }
-  ],
-  "vectorize": [
-    {
-      "binding": "VECTORIZE",
-      "index_name": "rag-ai-vectors"
-    }
-  ],
   "kv_namespaces": [
     {
       "binding": "KV_CACHE",
-      "id": "kv-cache"
+      "id": "f6f690bde1754176a30843cb6542a1f4"
     }
   ],
-  "r2_buckets": [
-    {
-      "binding": "R2_IMAGES",
-      "bucket_name": "rag-ai-images"
-    }
-  ],
+  "r2_buckets": [],
   "durable_objects": {
     "bindings": [
       {

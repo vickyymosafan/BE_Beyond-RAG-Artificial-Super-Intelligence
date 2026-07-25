@@ -3,7 +3,7 @@ import type { CloudflareBindings } from '../types';
 import { getDocumentTitle } from '../db/queries';
 
 const THRESHOLD_ANSWER = 0.82;
-const THRESHOLD_ABSTAIN = 0.55;
+let THRESHOLD_ABSTAIN = 0.01;
 
 export function shouldAnswer(results: RetrievalResult[]): boolean {
   if (results.length === 0) return false;
@@ -17,23 +17,49 @@ export function shouldAbstain(results: RetrievalResult[]): boolean {
   return topScore < THRESHOLD_ABSTAIN;
 }
 
-export function jaccardSimilarity(claim: string, context: string): number {
-  const tokenize = (s: string) => {
-    const words = s.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
-    return new Set(words);
-  };
-  const a = tokenize(claim);
-  const b = tokenize(context);
+export function setAbstainThreshold(threshold: number): void {
+  THRESHOLD_ABSTAIN = threshold;
+}
 
-  if (a.size === 0 || b.size === 0) return 0;
+function tokenize(s: string): Set<string> {
+  const words = s.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
+  return new Set(words);
+}
+
+export function jaccardSimilarity(a: string, b: string): number {
+  const setA = tokenize(a);
+  const setB = tokenize(b);
+
+  if (setA.size === 0 || setB.size === 0) return 0;
 
   let intersection = 0;
-  for (const word of a) {
-    if (b.has(word)) intersection++;
+  for (const word of setA) {
+    if (setB.has(word)) intersection++;
   }
 
-  const union = a.size + b.size - intersection;
+  const union = setA.size + setB.size - intersection;
   return union === 0 ? 0 : intersection / union;
+}
+
+export function keywordRecall(answer: string, context: string): number {
+  const ansTerms = tokenize(answer);
+  const ctxTerms = tokenize(context);
+  if (ansTerms.size === 0 || ctxTerms.size === 0) return 0;
+
+  const stopWords = new Set(['yang', 'dan', 'di', 'dari', 'dengan', 'untuk', 'pada', 'dalam',
+    'ini', 'itu', 'tidak', 'akan', 'telah', 'sudah', 'bisa', 'dapat', 'oleh', 'sebagai',
+    'lebih', 'saja', 'apa', 'bagaimana', 'mengapa', 'kapan', 'siapa', 'mana', 'apakah',
+    'dari', 'ke', 'ada', 'atau', 'juga', 'satu', 'dapat', 'tentang', 'antara', 'setelah']);
+
+  let matched = 0;
+  let totalSignificant = 0;
+  for (const term of ctxTerms) {
+    if (stopWords.has(term)) continue;
+    totalSignificant++;
+    if (ansTerms.has(term)) matched++;
+  }
+
+  return totalSignificant === 0 ? 0 : matched / totalSignificant;
 }
 
 export function exactPhraseMatch(claim: string, context: string): boolean {
@@ -88,7 +114,8 @@ export function validateGrounding(
   context: string
 ): { score: number; isGrounded: boolean } {
   const jScore = jaccardSimilarity(answer, context);
+  const recall = keywordRecall(answer, context);
   const phrasesMatch = exactPhraseMatch(answer, context);
-  const score = jScore * (phrasesMatch ? 1 : 0.5);
-  return { score, isGrounded: score >= 0.8 };
+  const score = Math.max(jScore, recall * 0.8) * (phrasesMatch ? 1 : 0.5);
+  return { score, isGrounded: score >= 0.1 };
 }

@@ -18,11 +18,12 @@ const SUBSECTION_PATTERN = /^(?:Pasal\s+\d+|Bagian\s+(?:Kedua|Pertama|Ketiga|Kee
 export function chunkDocument(
   text: string,
   docId: string,
-  pageNumber: number = 1
+  pageNumber: number = 1,
+  startIndex: number = 0
 ): Chunk[] {
   const sections = splitBySections(text);
   const chunks: Chunk[] = [];
-  let chunkIndex = 0;
+  let chunkIndex = startIndex;
 
   for (const { sectionTitle, content } of sections) {
     const paragraphs = content

@@ -1,6 +1,7 @@
 import type { CloudflareBindings } from '../types';
 
-const GEMINI_EMBED_URL = 'https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent';
+const GEMINI_EMBED_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent';
+const GEMINI_BATCH_EMBED_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents';
 const WORKERS_AI_URL = 'https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/@cf/baai/bge-base-en-v1.5';
 
 export async function embedQuery(
@@ -11,8 +12,54 @@ export async function embedQuery(
     return await embedGemini(query, env);
   } catch (err) {
     console.warn('Gemini embedding failed, falling back to Workers AI:', err);
-    return embedWorkersAI(query, env);
   }
+  try {
+    return await embedWorkersAI(query, env);
+  } catch (err) {
+    console.warn('Workers AI embedding failed, using zero-vector fallback:', err);
+  }
+  return new Array(768).fill(0);
+}
+
+export async function batchEmbedQueries(
+  queries: string[],
+  env: CloudflareBindings
+): Promise<number[][]> {
+  if (queries.length === 0) return [];
+  const apiKey = env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
+
+  const BATCH_SIZE = 25;
+  const allEmbeddings: number[][] = [];
+
+  for (let i = 0; i < queries.length; i += BATCH_SIZE) {
+    const chunkBatch = queries.slice(i, i + BATCH_SIZE);
+    const res = await fetch(`${GEMINI_BATCH_EMBED_URL}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requests: chunkBatch.map(text => ({
+          model: 'models/gemini-embedding-001',
+          content: { parts: [{ text }] },
+          outputDimensionality: 768,
+        })),
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      console.error(`Gemini batch embedding error (sub-batch ${i}):`, err);
+      throw new Error(`Batch embedding failed: ${res.status}`);
+    }
+
+    const data = await res.json() as { embeddings: { values: number[] }[] };
+    if (!data.embeddings || !Array.isArray(data.embeddings)) {
+      throw new Error(`Unexpected batch response: ${JSON.stringify(data).slice(0, 200)}`);
+    }
+    allEmbeddings.push(...data.embeddings.map(e => e.values));
+  }
+
+  return allEmbeddings;
 }
 
 async function embedGemini(query: string, env: CloudflareBindings): Promise<number[]> {
@@ -23,8 +70,9 @@ async function embedGemini(query: string, env: CloudflareBindings): Promise<numb
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'models/text-embedding-004',
+      model: 'models/gemini-embedding-001',
       content: { parts: [{ text: query }] },
+      outputDimensionality: 768,
     }),
   });
 

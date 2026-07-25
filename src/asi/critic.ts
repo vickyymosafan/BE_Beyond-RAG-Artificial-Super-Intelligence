@@ -18,7 +18,7 @@ export async function selfCritic(
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'qwen-3b-8096',
+      model: 'llama-3.1-8b-instant',
       messages: [
         {
           role: 'system',
@@ -62,11 +62,12 @@ Output JSON.`,
   const data = await res.json() as { choices: Array<{ message: { content: string } }> };
   try {
     const output = JSON.parse(data.choices[0].message.content) as CriticResult;
-    return {
-      score: Math.max(0, Math.min(1, output.score || 0.5)),
-      issues: output.issues || [],
-      verdict: output.verdict || 'retry',
-    };
+    const score = Math.max(0, Math.min(1, output.score || 0.5));
+    let verdict: 'pass' | 'retry' | 'abstain';
+    if (score < 0.4) verdict = 'abstain';
+    else if (score > 0.7) verdict = 'pass';
+    else verdict = 'retry';
+    return { score, issues: output.issues || [], verdict };
   } catch {
     return { score: 0.5, issues: ['Failed to parse critic output'], verdict: 'retry' };
   }

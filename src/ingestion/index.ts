@@ -21,26 +21,30 @@ export async function ingestDocument(
   userId: string,
   env: CloudflareBindings
 ): Promise<IngestionResult> {
-  const fileHash = await hashQuery(await file.text());
+  const arrayBuffer = await file.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+  const fileHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
   const docType = file.name.endsWith('.pdf') ? 'pdf' : 'docx';
 
   await createDocument({ id: docId, title, filename: file.name, type: docType }, env);
   await updateDocumentStatus(docId, 'processing', env);
 
   try {
-    await env.R2_IMAGES.put(`raw/${docId}/${file.name}`, file);
 
     const parseResult = await parseDocument(file, docId, env);
-    const allChunks = parseResult.pages.flatMap(page =>
-      chunkDocument(page.text, docId, page.pageNumber)
-    );
+    let runningIndex = 0;
+    const allChunks = parseResult.pages.flatMap(page => {
+      const pageChunks = chunkDocument(page.text, docId, page.pageNumber, runningIndex);
+      runningIndex += pageChunks.length;
+      return pageChunks;
+    });
 
     const indexResult = await indexChunks(
       allChunks.map(chunk => ({
         id: chunk.id,
         docId: chunk.docId,
         content: chunk.content,
-        contentType: docType === 'pdf' ? 'pdf_text' : 'docx_text',
+        contentType: 'text',
         pageNumber: chunk.pageNumber,
         sectionTitle: chunk.sectionTitle,
         chunkIndex: chunk.chunkIndex,

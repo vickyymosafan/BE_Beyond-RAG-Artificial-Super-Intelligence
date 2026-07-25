@@ -16,7 +16,7 @@ export async function decomposeQuery(
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'qwen-3b-8096',
+      model: 'llama-3.1-8b-instant',
       messages: [
         {
           role: 'system',

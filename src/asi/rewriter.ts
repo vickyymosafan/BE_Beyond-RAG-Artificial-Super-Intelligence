@@ -14,8 +14,9 @@ export async function rewriteAndExpand(
 Tugas Anda: rewrite query user menjadi query formal yang optimal untuk pencarian, lalu buat 2 variasi semantic.
 
 Aturan:
-- Gunakan istilah formal akademik
-- Tambahkan konteks dokumen jika perlu (TA, KP, KKN, Kurikulum)
+- Gunakan istilah formal akademik Indonesia
+- TA = Tugas Akhir (skripsi), KP = Kerja Praktek, KKN = Kuliah Kerja Nyata
+- JANGAN mengubah singkatan: TA, KP, KKN tetap ditulis apa adanya
 - JANGAN mengubah intent asli
 - Output JSON: { "rewritten": "query formal", "variants": ["variasi1", "variasi2"] }`;
 
@@ -26,7 +27,7 @@ Aturan:
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'qwen-3b-8096',
+      model: 'llama-3.1-8b-instant',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `Query: "${query}"\nTipe: ${type}\n\nOutput JSON.` },
@@ -44,10 +45,13 @@ Aturan:
   }
 
   const data = await res.json() as { choices: Array<{ message: { content: string } }> };
-  const output = JSON.parse(data.choices[0].message.content) as RewriterOutput;
-
-  return {
-    rewritten: output.rewritten || query,
-    variants: Array.isArray(output.variants) ? output.variants.slice(0, 2) : [],
-  };
+  try {
+    const output = JSON.parse(data.choices[0].message.content) as RewriterOutput;
+    return {
+      rewritten: output.rewritten || query,
+      variants: Array.isArray(output.variants) ? output.variants.slice(0, 2) : [],
+    };
+  } catch {
+    return { rewritten: query, variants: [] };
+  }
 }

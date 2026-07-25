@@ -1,3 +1,4 @@
+import { neon } from '@neondatabase/serverless';
 import type { CloudflareBindings, QueryType, RetrievalResult } from '../types';
 import { embedQuery } from '../utils/embedding';
 import { vectorSearch, bm25Search } from '../db/queries';
@@ -59,18 +60,24 @@ async function retrieveImages(
   env: CloudflareBindings,
   docFilter?: string[]
 ): Promise<RetrievalResult[]> {
-  let sql = 'SELECT id, doc_id, r2_key, mime_type, page_number, caption FROM extracted_images WHERE 1=1';
-  const params: unknown[] = [];
-
-  if (docFilter?.length) {
-    sql += ' AND doc_id IN (' + docFilter.map(() => '?').join(',') + ')';
-    params.push(...docFilter);
+  const sql = neon(env.DATABASE_URL);
+  let rows: Array<Record<string, unknown>>;
+  if (docFilter && docFilter.length > 0) {
+    rows = await sql`
+      SELECT id, doc_id, r2_key, mime_type, page_number, caption
+      FROM extracted_images
+      WHERE doc_id = ANY(${docFilter}::text[])
+      ORDER BY page_number LIMIT 5
+    ` as Array<Record<string, unknown>>;
+  } else {
+    rows = await sql`
+      SELECT id, doc_id, r2_key, mime_type, page_number, caption
+      FROM extracted_images
+      ORDER BY page_number LIMIT 5
+    ` as Array<Record<string, unknown>>;
   }
 
-  sql += ' ORDER BY page_number LIMIT 5';
-  const { results } = await env.DB.prepare(sql).bind(...params).all();
-
-  return (results as Array<Record<string, unknown>>).map((r, i) => ({
+  return rows.map((r, i) => ({
     chunkId: `${r.id}`,
     docId: `${r.doc_id}`,
     content: `${r.caption || 'Gambar'} — ${r.mime_type || 'image/png'} (Hal ${r.page_number || 1})`,
@@ -87,28 +94,46 @@ async function retrieveTables(
   env: CloudflareBindings,
   docFilter?: string[]
 ): Promise<RetrievalResult[]> {
-  let sql = 'SELECT id, doc_id, page_number, caption, table_markdown FROM extracted_tables WHERE 1=1';
-  const params: unknown[] = [];
-
-  if (docFilter?.length) {
-    sql += ' AND doc_id IN (' + docFilter.map(() => '?').join(',') + ')';
-    params.push(...docFilter);
-  }
-
+  const sql = neon(env.DATABASE_URL);
   const lowerQuery = query.toLowerCase();
   const tableKeywords = lowerQuery.split(/\s+/).filter(w => w.length > 3);
-  if (tableKeywords.length > 0) {
-    const likeClauses = tableKeywords.map(() => " (table_markdown LIKE ? OR caption LIKE ?) ");
-    sql += ' AND (' + likeClauses.join(' OR ') + ')';
-    for (const kw of tableKeywords) {
-      params.push(`%${kw}%`, `%${kw}%`);
+
+  let rows: Array<Record<string, unknown>>;
+  if (tableKeywords.length === 0) {
+    if (docFilter && docFilter.length > 0) {
+      rows = await sql`
+        SELECT id, doc_id, page_number, caption, table_markdown
+        FROM extracted_tables
+        WHERE doc_id = ANY(${docFilter}::text[])
+        ORDER BY page_number LIMIT 5
+      ` as Array<Record<string, unknown>>;
+    } else {
+      rows = await sql`
+        SELECT id, doc_id, page_number, caption, table_markdown
+        FROM extracted_tables
+        ORDER BY page_number LIMIT 5
+      ` as Array<Record<string, unknown>>;
+    }
+  } else {
+    if (docFilter && docFilter.length > 0) {
+      rows = await sql`
+        SELECT id, doc_id, page_number, caption, table_markdown
+        FROM extracted_tables
+        WHERE doc_id = ANY(${docFilter}::text[])
+          AND (${tableKeywords.map(kw => sql`(table_markdown ILIKE ${'%' + kw + '%'} OR caption ILIKE ${'%' + kw + '%'})`).reduce((a, b) => sql`${a} OR ${b}`)})
+        ORDER BY page_number LIMIT 5
+      ` as Array<Record<string, unknown>>;
+    } else {
+      rows = await sql`
+        SELECT id, doc_id, page_number, caption, table_markdown
+        FROM extracted_tables
+        WHERE ${tableKeywords.map(kw => sql`(table_markdown ILIKE ${'%' + kw + '%'} OR caption ILIKE ${'%' + kw + '%'})`).reduce((a, b) => sql`${a} OR ${b}`)}
+        ORDER BY page_number LIMIT 5
+      ` as Array<Record<string, unknown>>;
     }
   }
 
-  sql += ' ORDER BY page_number LIMIT 5';
-  const { results } = await env.DB.prepare(sql).bind(...params).all();
-
-  return (results as Array<Record<string, unknown>>).map((r, i) => ({
+  return rows.map((r, i) => ({
     chunkId: `${r.id}`,
     docId: `${r.doc_id}`,
     content: `\n[TABEL ${r.caption || ''}]\n${r.table_markdown || ''}`,
@@ -128,14 +153,19 @@ function fusionWeighted(
   const seen = new Set<string>();
   const fused: RetrievalResult[] = [];
 
+  const hasVector = vector.length > 0;
+  const vectorW = hasVector ? strategy.vector : 0;
+  const bm25W = hasVector ? strategy.bm25 : 1.0;
+
   for (const v of vector) {
-    fused.push({ ...v, score: v.score * strategy.vector, source: 'fusion' as const });
+    fused.push({ ...v, score: v.score * vectorW, source: 'fusion' as const });
     seen.add(v.chunkId);
   }
 
   for (const b of bm25) {
     if (!seen.has(b.chunkId)) {
-      fused.push({ ...b, score: b.score * strategy.bm25, source: 'fusion' as const });
+      const score = b.score < 0 ? 1.0 / (1 + Math.abs(b.score)) : b.score;
+      fused.push({ ...b, score: score * bm25W, source: 'fusion' as const });
     }
   }
 

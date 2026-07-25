@@ -1,10 +1,9 @@
 import type { DurableObjectNamespace, DurableObject } from '@cloudflare/workers-types';
 
 export interface CloudflareBindings {
-  DB: D1Database;
-  VECTORIZE: VectorizeIndex;
+  DATABASE_URL: string;
   KV_CACHE: KVNamespace;
-  R2_IMAGES: R2Bucket;
+  R2_IMAGES?: R2Bucket;
   RATE_LIMITER: DurableObjectNamespace;
   PROVIDER_RATE_LIMITER: DurableObjectNamespace;
   ENVIRONMENT: string;
@@ -14,6 +13,8 @@ export interface CloudflareBindings {
   OPENROUTER_API_KEY?: string;
   JWT_SECRET?: string;
   CLOUDFLARE_ACCOUNT_ID?: string;
+  ADMIN_USERNAME?: string;
+  ADMIN_PASSWORD?: string;
 }
 
 export type QueryType = 'text' | 'image' | 'table' | 'complex' | 'hybrid';
