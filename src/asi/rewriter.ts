@@ -1,23 +1,31 @@
-import type { CloudflareBindings, QueryType, RewriterOutput } from '../types';
+import type { CloudflareBindings, QueryType, RewriterOutput, ChatMessageContext } from '../types';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 export async function rewriteAndExpand(
   query: string,
   type: QueryType,
-  env: CloudflareBindings
+  env: CloudflareBindings,
+  history?: ChatMessageContext[]
 ): Promise<RewriterOutput> {
   const apiKey = env.GROQ_API_KEY;
   if (!apiKey) throw new Error('GROQ_API_KEY not configured');
+
+  let historyContext = '';
+  if (history && history.length > 0) {
+    historyContext = '\nRiwayat Percakapan Sebelumnya:\n' +
+      history.slice(-4).map(h => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.content}`).join('\n') + '\n';
+  }
 
   const systemPrompt = `Anda adalah asisten retrieval untuk dokumen akademik universitas.
 Tugas Anda: rewrite query user menjadi query formal yang optimal untuk pencarian, lalu buat 2 variasi semantic.
 
 Aturan:
-- Gunakan istilah formal akademik Indonesia
-- TA = Tugas Akhir (skripsi), KP = Kerja Praktek, KKN = Kuliah Kerja Nyata
-- JANGAN mengubah singkatan: TA, KP, KKN tetap ditulis apa adanya
-- JANGAN mengubah intent asli
+- Jika ada riwayat percakapan, gunakan konteks tersebut untuk melengkapi pertanyaan menggantung (misal: "dia dosen mana?" ➔ Sebutkan nama subjek dari riwayat).
+- Gunakan istilah formal akademik Indonesia.
+- TA = Tugas Akhir (skripsi), KP = Kerja Praktek, KKN = Kuliah Kerja Nyata.
+- JANGAN mengubah singkatan: TA, KP, KKN tetap ditulis apa adanya.
+- JANGAN PERNAH mengubah maksud/intent asli pertanyaan user.
 - Output JSON: { "rewritten": "query formal", "variants": ["variasi1", "variasi2"] }`;
 
   const res = await fetch(GROQ_API_URL, {
@@ -30,7 +38,7 @@ Aturan:
       model: 'llama-3.1-8b-instant',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Query: "${query}"\nTipe: ${type}\n\nOutput JSON.` },
+        { role: 'user', content: `${historyContext}Query Baru: "${query}"\nTipe: ${type}\n\nOutput JSON.` },
       ],
       temperature: 0.3,
       max_tokens: 500,

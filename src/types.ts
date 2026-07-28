@@ -19,10 +19,16 @@ export interface CloudflareBindings {
 
 export type QueryType = 'text' | 'image' | 'table' | 'complex' | 'hybrid';
 
+export interface ChatMessageContext {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface QueryRequest {
   query: string;
   userId: string;
   documentIds?: string[];
+  history?: ChatMessageContext[];
 }
 
 export interface QueryResponse {

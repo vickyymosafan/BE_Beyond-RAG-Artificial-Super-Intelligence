@@ -5,7 +5,7 @@ import { hashQuery } from '../utils/hash';
 const EXACT_TTL = 86400;
 const SEMANTIC_TTL = 604800;
 const MAX_TTL = 604800;
-const SEMANTIC_THRESHOLD = 0.92;
+const SEMANTIC_THRESHOLD = 0.75;
 
 export async function getFromCache(
   query: string,

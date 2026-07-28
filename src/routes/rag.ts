@@ -25,17 +25,21 @@ const querySchema = z.object({
   query: z.string().min(1).max(1000),
   userId: z.string().min(1),
   documentIds: z.array(z.string()).optional(),
+  history: z.array(z.object({
+    role: z.enum(['user', 'assistant']),
+    content: z.string(),
+  })).optional(),
 });
 
 ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
-  const { query, userId, documentIds } = c.req.valid('json') as QueryRequest;
+  const { query, userId, documentIds, history } = c.req.valid('json') as QueryRequest;
   const env = c.env;
   const reasoningPath: string[] = [];
 
   try {
     const cached = await getFromCache(query, env);
     if (cached) {
-      reasoningPath.push('Cache hit: L1 exact match');
+      reasoningPath.push('Cache hit: L1 exact or L2 semantic match');
       return c.json({
         answer: cached.response,
         citations: cached.citations,
@@ -87,7 +91,7 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
     }
 
     const { rewritten, variants } = await callWithFallback(
-      () => rewriteAndExpand(query, queryType, env),
+      () => rewriteAndExpand(query, queryType, env, history),
       async () => ({ rewritten: query, variants: [query] }),
       'groq',
       10000
