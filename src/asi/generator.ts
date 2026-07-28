@@ -19,7 +19,8 @@ ATURAN KETAT:
 4. Setiap klaim WAJIB menyertakan sumber: [Nama Dokumen, Hal X]
 5. Gunakan format Markdown untuk struktur jawaban.
 6. Jika ada tabel, tampilkan dalam format markdown.
-7. Jika ada kode, tampilkan dalam code block dengan bahasa yang sesuai.`;
+7. Jika ada kode, tampilkan dalam code block dengan bahasa yang sesuai.
+8. Jika konteks memuat beberapa poin/sub-bab terpisah (misalnya "2) Penomoran Halaman", "3) Tata Bahasa Penulisan"), JAWAB HANYA menggunakan poin yang RELEVAN LANGSUNG dengan pertanyaan. JANGAN mencampuradukkan isi dari poin/sub-bab yang berbeda.`;
 
   const contextBlock = `--- KONTEKS DOKUMEN ---\n${context}\n\n--- CITATIONS ---\n${citations.join('\n')}`;
 

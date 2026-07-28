@@ -13,7 +13,7 @@ const OVERLAP_TOKENS = 64;
 const MIN_CHUNK_LENGTH = 50;
 
 const SECTION_PATTERN = /^(BAB|BAGIAN|PASAL|LAMPIRAN|KETENTUAN|BAB\s+[IVXLCDM]+)/im;
-const SUBSECTION_PATTERN = /^(?:Pasal\s+\d+|Bagian\s+(?:Kedua|Pertama|Ketiga|Keempat)|Bag\s+\d+|Sub-Bab\s+[\d.]+)/im;
+const SUBSECTION_PATTERN = /^(?:Pasal\s+\d+|Bagian\s+(?:Kedua|Pertama|Ketiga|Keempat)|Bag\s+\d+|Sub-Bab\s+[\d.]+|\d+\)\s+[A-Z]|\d+\.\d+\s+[A-Z])/im;
 
 export function chunkDocument(
   text: string,
