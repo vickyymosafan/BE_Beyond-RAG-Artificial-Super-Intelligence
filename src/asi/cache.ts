@@ -121,3 +121,16 @@ export async function clearAllCache(env: CloudflareBindings): Promise<number> {
   }
   return deleted;
 }
+
+export async function trackNegativePattern(query: string, env: CloudflareBindings): Promise<void> {
+  const queryHash = await hashQuery(query);
+  await env.KV_CACHE.put(`negative:${queryHash}`, JSON.stringify({ query, timestamp: Date.now() }), {
+    expirationTtl: 86400 * 7,
+  });
+}
+
+export async function isNegativePattern(query: string, env: CloudflareBindings): Promise<boolean> {
+  const queryHash = await hashQuery(query);
+  const pattern = await env.KV_CACHE.get(`negative:${queryHash}`);
+  return !!pattern;
+}

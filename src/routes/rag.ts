@@ -9,7 +9,7 @@ import { rerankChunks } from '../asi/rerank';
 import { multiHopRetrieve } from '../asi/multi-hop';
 import { generateAnswer, generateCohere, generateOpenRouter } from '../asi/generator';
 import { shouldAnswer, shouldAbstain, buildCitations, validateGrounding } from '../asi/grounding';
-import { getFromCache, setCache } from '../asi/cache';
+import { getFromCache, setCache, trackNegativePattern, isNegativePattern } from '../asi/cache';
 import { callWithFallback } from '../asi/router';
 import { decomposeQuery } from '../asi/sub-question';
 import { selfCritic } from '../asi/critic';
@@ -121,6 +121,10 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
       topResults = await rerankChunks(topResults, query, env);
       reasoningPath.push(`Rerank applied: ${topResults.length} chunks re-scored`);
     }
+
+    // Top-3 Token Pruning (E-CRAG 85% Token Savings)
+    topResults = topResults.slice(0, 3);
+    reasoningPath.push(`Top-3 Token Pruning applied: ${topResults.length} high-confidence chunks retained`);
 
     if (shouldAbstain(topResults)) {
       reasoningPath.push('Retrieval score below abstain threshold (< 0.55)');
@@ -265,6 +269,8 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
     }
 
     if (criticResult.verdict === 'abstain') {
+      await trackNegativePattern(query, env);
+      reasoningPath.push('Logged to Negative Feedback Memory Bank');
       finalAnswer = 'Maaf, saya tidak dapat memberikan jawaban yang akurat berdasarkan dokumen yang tersedia. Silakan periksa ulang pertanyaan Anda atau konsultasi dengan staff akademik.';
       finalScore = 0;
     } else {
