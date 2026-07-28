@@ -43,14 +43,14 @@ export function keywordRecall(answer: string, context: string): number {
   const stopWords = new Set(['yang', 'dan', 'di', 'dari', 'dengan', 'untuk', 'pada', 'dalam',
     'ini', 'itu', 'tidak', 'akan', 'telah', 'sudah', 'bisa', 'dapat', 'oleh', 'sebagai',
     'lebih', 'saja', 'apa', 'bagaimana', 'mengapa', 'kapan', 'siapa', 'mana', 'apakah',
-    'ke', 'ada', 'atau', 'juga', 'satu', 'tentang', 'antara', 'setelah']);
+    'ke', 'ada', 'atau', 'juga', 'satu', 'tentang', 'antara', 'setelah', 'berikut', 'adalah']);
 
   let matched = 0;
   let totalSignificant = 0;
-  for (const term of ctxTerms) {
+  for (const term of ansTerms) {
     if (stopWords.has(term)) continue;
     totalSignificant++;
-    if (ansTerms.has(term)) matched++;
+    if (ctxTerms.has(term)) matched++;
   }
 
   return totalSignificant === 0 ? 0 : matched / totalSignificant;

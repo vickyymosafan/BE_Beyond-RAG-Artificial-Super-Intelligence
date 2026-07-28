@@ -20,7 +20,7 @@ export const LLM_TEMPERATURE_MED = 0.3;
 export const LLM_MAX_TOKENS_SMALL = 100;
 export const LLM_MAX_TOKENS_MED = 300;
 export const LLM_MAX_TOKENS_DEFAULT = 500;
-export const LLM_MAX_TOKENS_LARGE = 2048;
+export const LLM_MAX_TOKENS_LARGE = 4096;
 export const LLM_TOP_P = 0.8;
 
 // Timeouts (ms)

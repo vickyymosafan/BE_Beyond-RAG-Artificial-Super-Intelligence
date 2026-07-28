@@ -174,3 +174,50 @@ function fusionWeighted(
     .sort((a, b) => b.score - a.score)
     .slice(0, strategy.topK * 2);
 }
+
+export async function expandContiguousChunks(
+  results: RetrievalResult[],
+  env: CloudflareBindings,
+  windowSize: number = 4
+): Promise<RetrievalResult[]> {
+  if (results.length === 0) return results;
+
+  const sql = neon(env.DATABASE_URL);
+  const expanded: RetrievalResult[] = [...results];
+  const seenPages = new Set(results.map(r => `${r.docId}:${r.pageNumber}`));
+
+  for (const item of results.slice(0, 2)) {
+    const startPage = item.pageNumber + 1;
+    const endPage = item.pageNumber + windowSize;
+
+    const adjacent = await sql`
+      SELECT id, doc_id, page_number, section_title, content
+      FROM chunks
+      WHERE doc_id = ${item.docId}
+        AND page_number >= ${startPage}
+        AND page_number <= ${endPage}
+      ORDER BY page_number ASC
+    ` as Array<Record<string, unknown>>;
+
+    for (const r of adjacent) {
+      const pageNum = (r.page_number as number) || 1;
+      const key = `${r.doc_id}:${pageNum}`;
+      if (!seenPages.has(key)) {
+        seenPages.add(key);
+        expanded.push({
+          chunkId: `${r.id}`,
+          docId: `${r.doc_id}`,
+          content: r.content as string,
+          contentType: (item.contentType || 'text') as any,
+          pageNumber: pageNum,
+          sectionTitle: (r.section_title as string) || 'Halaman ' + pageNum,
+          score: item.score * 0.95,
+          source: 'fusion' as const,
+        });
+      }
+    }
+  }
+
+  return expanded.sort((a, b) => a.pageNumber - b.pageNumber);
+}
+

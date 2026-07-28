@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { CloudflareBindings, QueryRequest, QueryResponse } from '../types';
 import { classifyQuery } from '../asi/classifier';
 import { rewriteAndExpand } from '../asi/rewriter';
-import { adaptiveRetrieve } from '../asi/retrieval';
+import { adaptiveRetrieve, expandContiguousChunks } from '../asi/retrieval';
 import { rerankChunks } from '../asi/rerank';
 import { multiHopRetrieve } from '../asi/multi-hop';
 import { generateAnswer, generateCohere, generateOpenRouter } from '../asi/generator';
@@ -124,9 +124,14 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
       reasoningPath.push(`Rerank applied: ${topResults.length} chunks re-scored`);
     }
 
-    // Top-3 Token Pruning (E-CRAG 85% Token Savings)
-    topResults = topResults.slice(0, TOP_K_PRUNED);
-    reasoningPath.push(`Top-3 Token Pruning applied: ${topResults.length} high-confidence chunks retained`);
+    // Top-3 Token Pruning (E-CRAG 85% Token Savings) / Contiguous Window Expansion
+    if (queryType === 'table' || queryType === 'complex') {
+      topResults = await expandContiguousChunks(topResults, env, 5);
+      reasoningPath.push(`Contiguous Table Expansion applied: ${topResults.length} linked document chunks retained`);
+    } else {
+      topResults = topResults.slice(0, TOP_K_PRUNED);
+      reasoningPath.push(`Top-3 Token Pruning applied: ${topResults.length} high-confidence chunks retained`);
+    }
 
     // Sentence-Level Context Compression (Token Optimization)
     topResults = compressContext(topResults, query);
