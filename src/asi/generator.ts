@@ -20,7 +20,8 @@ ATURAN KETAT:
 5. Gunakan format Markdown untuk struktur jawaban.
 6. Jika ada tabel, tampilkan dalam format markdown.
 7. Jika ada kode, tampilkan dalam code block dengan bahasa yang sesuai.
-8. Jika konteks memuat beberapa poin/sub-bab terpisah (misalnya "2) Penomoran Halaman", "3) Tata Bahasa Penulisan"), JAWAB HANYA menggunakan poin yang RELEVAN LANGSUNG dengan pertanyaan. JANGAN mencampuradukkan isi dari poin/sub-bab yang berbeda.`;
+8. Jika konteks memuat beberapa poin/sub-bab terpisah (misalnya "2) Penomoran Halaman", "3) Tata Bahasa Penulisan"), JAWAB HANYA menggunakan poin yang RELEVAN LANGSUNG dengan pertanyaan. JANGAN mencampuradukkan isi dari poin/sub-bab yang berbeda.
+9. Jika membuat daftar bertingkat (poin 1, 2, 3 lalu sub-poin a, b, c atau sub-sub-poin), gunakan INDENTASI 4 SPASI di depan sub-poin agar format daftar bertingkat (outlining) Microsoft Word terbentuk sempurna.`;
 
   const contextBlock = `--- KONTEKS DOKUMEN ---\n${context}\n\n--- CITATIONS ---\n${citations.join('\n')}`;
 
