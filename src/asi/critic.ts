@@ -1,6 +1,5 @@
 import type { CloudflareBindings, CriticResult } from '../types';
-
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+import { GROQ_API_URL, GROQ_MODEL, LLM_TEMPERATURE_LOW, LLM_MAX_TOKENS_DEFAULT, CRITIC_PASS_THRESHOLD, CRITIC_FALLBACK_SCORE } from '../constants';
 
 export async function selfCritic(
   query: string,
@@ -18,7 +17,7 @@ export async function selfCritic(
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'llama-3.1-8b-instant',
+      model: GROQ_MODEL,
       messages: [
         {
           role: 'system',
@@ -47,8 +46,8 @@ ${answer.slice(0, 2000)}
 Output JSON.`,
         },
       ],
-      temperature: 0.2,
-      max_tokens: 500,
+      temperature: LLM_TEMPERATURE_LOW,
+      max_tokens: LLM_MAX_TOKENS_DEFAULT,
       response_format: { type: 'json_object' },
     }),
   });
@@ -56,19 +55,19 @@ Output JSON.`,
   if (!res.ok) {
     const err = await res.text();
     console.error('Groq Critic error:', err);
-    return { score: 0.5, issues: ['Critic service unavailable'], verdict: 'retry' };
+    return { score: CRITIC_FALLBACK_SCORE, issues: ['Critic service unavailable'], verdict: 'retry' };
   }
 
   const data = await res.json() as { choices: Array<{ message: { content: string } }> };
   try {
     const output = JSON.parse(data.choices[0].message.content) as CriticResult;
-    const score = Math.max(0, Math.min(1, output.score || 0.5));
+    const score = Math.max(0, Math.min(1, output.score || CRITIC_FALLBACK_SCORE));
     let verdict: 'pass' | 'retry' | 'abstain';
     if (score < 0.4) verdict = 'abstain';
-    else if (score > 0.7) verdict = 'pass';
+    else if (score > CRITIC_PASS_THRESHOLD) verdict = 'pass';
     else verdict = 'retry';
     return { score, issues: output.issues || [], verdict };
   } catch {
-    return { score: 0.5, issues: ['Failed to parse critic output'], verdict: 'retry' };
+    return { score: CRITIC_FALLBACK_SCORE, issues: ['Failed to parse critic output'], verdict: 'retry' };
   }
 }

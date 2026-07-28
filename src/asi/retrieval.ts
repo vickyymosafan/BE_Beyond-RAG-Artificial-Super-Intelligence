@@ -2,6 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import type { CloudflareBindings, QueryType, RetrievalResult } from '../types';
 import { embedQuery } from '../utils/embedding';
 import { vectorSearch, bm25Search } from '../db/queries';
+import { TOP_K_RESULTS } from '../constants';
 
 const QUERY_STRATEGIES: Record<QueryType, { vector: number; bm25: number; topK: number }> = {
   text: { vector: 0.7, bm25: 0.3, topK: 5 },
@@ -67,13 +68,13 @@ async function retrieveImages(
       SELECT id, doc_id, r2_key, mime_type, page_number, caption
       FROM extracted_images
       WHERE doc_id = ANY(${docFilter}::text[])
-      ORDER BY page_number LIMIT 5
+      ORDER BY page_number LIMIT ${TOP_K_RESULTS}
     ` as Array<Record<string, unknown>>;
   } else {
     rows = await sql`
       SELECT id, doc_id, r2_key, mime_type, page_number, caption
       FROM extracted_images
-      ORDER BY page_number LIMIT 5
+      ORDER BY page_number LIMIT ${TOP_K_RESULTS}
     ` as Array<Record<string, unknown>>;
   }
 
@@ -105,13 +106,13 @@ async function retrieveTables(
         SELECT id, doc_id, page_number, caption, table_markdown
         FROM extracted_tables
         WHERE doc_id = ANY(${docFilter}::text[])
-        ORDER BY page_number LIMIT 5
+        ORDER BY page_number LIMIT ${TOP_K_RESULTS}
       ` as Array<Record<string, unknown>>;
     } else {
       rows = await sql`
         SELECT id, doc_id, page_number, caption, table_markdown
         FROM extracted_tables
-        ORDER BY page_number LIMIT 5
+        ORDER BY page_number LIMIT ${TOP_K_RESULTS}
       ` as Array<Record<string, unknown>>;
     }
   } else {
@@ -121,14 +122,14 @@ async function retrieveTables(
         FROM extracted_tables
         WHERE doc_id = ANY(${docFilter}::text[])
           AND (${tableKeywords.map(kw => sql`(table_markdown ILIKE ${'%' + kw + '%'} OR caption ILIKE ${'%' + kw + '%'})`).reduce((a, b) => sql`${a} OR ${b}`)})
-        ORDER BY page_number LIMIT 5
+        ORDER BY page_number LIMIT ${TOP_K_RESULTS}
       ` as Array<Record<string, unknown>>;
     } else {
       rows = await sql`
         SELECT id, doc_id, page_number, caption, table_markdown
         FROM extracted_tables
         WHERE ${tableKeywords.map(kw => sql`(table_markdown ILIKE ${'%' + kw + '%'} OR caption ILIKE ${'%' + kw + '%'})`).reduce((a, b) => sql`${a} OR ${b}`)}
-        ORDER BY page_number LIMIT 5
+        ORDER BY page_number LIMIT ${TOP_K_RESULTS}
       ` as Array<Record<string, unknown>>;
     }
   }

@@ -2,9 +2,7 @@ import type { CloudflareBindings, RetrievalResult } from '../types';
 import { adaptiveRetrieve } from './retrieval';
 import { callWithFallback } from './router';
 import { trackRPDCall } from '../utils/rpd-tracker';
-
-const MIN_CONFIDENCE_SCORE = 0.55;
-const MAX_HOPS = 2;
+import { GROQ_API_URL, GROQ_MODEL_VERSATILE, MIN_CONFIDENCE_SCORE, MAX_HOPS, LLM_TEMPERATURE_MED, LLM_MAX_TOKENS_SMALL } from '../constants';
 
 export async function multiHopRetrieve(
   query: string,
@@ -64,7 +62,7 @@ async function generateNextHopQuery(
   const result = await callWithFallback(
     async () => {
       const res = await (await fetch(
-        `https://api.groq.com/openai/v1/chat/completions`,
+        GROQ_API_URL,
         {
           method: 'POST',
           headers: {
@@ -72,7 +70,7 @@ async function generateNextHopQuery(
             'Authorization': `Bearer ${env.GROQ_API_KEY}`,
           },
           body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
+            model: GROQ_MODEL_VERSATILE,
             messages: [
               {
                 role: 'system',
@@ -96,8 +94,8 @@ ${contextSummary}
 Buat follow-up query untuk melengkapi informasi yang kurang:`,
               },
             ],
-            temperature: 0.3,
-            max_tokens: 100,
+            temperature: LLM_TEMPERATURE_MED,
+            max_tokens: LLM_MAX_TOKENS_SMALL,
           }),
         }
       ));

@@ -56,6 +56,10 @@ export async function adminAuth(
 
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) return c.json({ error: 'Unauthorized: token expired' }, 401);
+    if (payload.role !== 'admin') return c.json({ error: 'Forbidden: admin access required' }, 403);
+    if (!payload.sub) return c.json({ error: 'Unauthorized: invalid token claims' }, 401);
+
     c.set('userId', payload.sub || 'unknown');
     c.set('userRole', payload.role || 'user');
     await next();

@@ -1,6 +1,5 @@
 import type { CloudflareBindings } from '../types';
-
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+import { GROQ_API_URL, GROQ_MODEL, LLM_TEMPERATURE_MED, LLM_MAX_TOKENS_DEFAULT, MAX_SUB_QUESTIONS } from '../constants';
 
 export async function decomposeQuery(
   query: string,
@@ -16,22 +15,22 @@ export async function decomposeQuery(
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'llama-3.1-8b-instant',
+      model: GROQ_MODEL,
       messages: [
         {
           role: 'system',
           content: `Anda adalah asisten yang memecah query akademik kompleks menjadi sub-questions independen.
 Setiap sub-question harus bisa dijawab dari satu sumber dokumen.
 Output JSON: { "subQuestions": ["Q1", "Q2", ...] }
-Maksimal 4 sub-questions.`,
+Maksimal ${MAX_SUB_QUESTIONS} sub-questions.`,
         },
         {
           role: 'user',
           content: `Pecah query berikut menjadi sub-questions independen:\n\n"${query}"\n\nOutput JSON.`,
         },
       ],
-      temperature: 0.3,
-      max_tokens: 500,
+      temperature: LLM_TEMPERATURE_MED,
+      max_tokens: LLM_MAX_TOKENS_DEFAULT,
       response_format: { type: 'json_object' },
     }),
   });

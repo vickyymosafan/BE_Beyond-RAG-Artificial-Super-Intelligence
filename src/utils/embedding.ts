@@ -1,8 +1,5 @@
 import type { CloudflareBindings } from '../types';
-
-const GEMINI_EMBED_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent';
-const GEMINI_BATCH_EMBED_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents';
-const WORKERS_AI_URL = 'https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run/@cf/baai/bge-base-en-v1.5';
+import { GEMINI_EMBED_URL, GEMINI_BATCH_EMBED_URL, WORKERS_AI_URL, EMBEDDING_DIMENSION, EMBEDDING_BATCH_SIZE, GEMINI_EMBEDDING_MODEL } from '../constants';
 
 export async function embedQuery(
   query: string,
@@ -18,7 +15,7 @@ export async function embedQuery(
   } catch (err) {
     console.warn('Workers AI embedding failed, using zero-vector fallback:', err);
   }
-  return new Array(768).fill(0);
+  return new Array(EMBEDDING_DIMENSION).fill(0);
 }
 
 export async function batchEmbedQueries(
@@ -26,10 +23,10 @@ export async function batchEmbedQueries(
   env: CloudflareBindings
 ): Promise<number[][]> {
   if (queries.length === 0) return [];
-  const apiKey = env.GEMINI_API_KEY;
+  const apiKey = env.CLOUDFLARE_API_TOKEN || env.GEMINI_API_KEY; // Known limitation
   if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
 
-  const BATCH_SIZE = 25;
+  const BATCH_SIZE = EMBEDDING_BATCH_SIZE;
   const allEmbeddings: number[][] = [];
 
   for (let i = 0; i < queries.length; i += BATCH_SIZE) {
@@ -39,9 +36,9 @@ export async function batchEmbedQueries(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         requests: chunkBatch.map(text => ({
-          model: 'models/gemini-embedding-001',
+          model: GEMINI_EMBEDDING_MODEL,
           content: { parts: [{ text }] },
-          outputDimensionality: 768,
+          outputDimensionality: EMBEDDING_DIMENSION,
         })),
       }),
     });
@@ -63,16 +60,16 @@ export async function batchEmbedQueries(
 }
 
 async function embedGemini(query: string, env: CloudflareBindings): Promise<number[]> {
-  const apiKey = env.GEMINI_API_KEY;
+  const apiKey = env.CLOUDFLARE_API_TOKEN || env.GEMINI_API_KEY; // Known limitation
   if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
 
   const res = await fetch(`${GEMINI_EMBED_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'models/gemini-embedding-001',
+      model: GEMINI_EMBEDDING_MODEL,
       content: { parts: [{ text: query }] },
-      outputDimensionality: 768,
+      outputDimensionality: EMBEDDING_DIMENSION,
     }),
   });
 

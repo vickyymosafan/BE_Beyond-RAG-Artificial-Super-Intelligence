@@ -1,6 +1,5 @@
 import type { CloudflareBindings, CorrectiveAction } from '../types';
-
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+import { GROQ_API_URL, GROQ_MODEL, LLM_TEMPERATURE_MED, LLM_MAX_TOKENS_MED } from '../constants';
 
 export async function correctiveRAG(
   query: string,
@@ -17,7 +16,7 @@ export async function correctiveRAG(
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'llama-3.1-8b-instant',
+      model: GROQ_MODEL,
       messages: [
         {
           role: 'system',
@@ -42,8 +41,8 @@ Issues: ${failedAttempt.issues.join(', ')}
 Tentukan strategy baru. Output JSON.`,
         },
       ],
-      temperature: 0.3,
-      max_tokens: 300,
+      temperature: LLM_TEMPERATURE_MED,
+      max_tokens: LLM_MAX_TOKENS_MED,
       response_format: { type: 'json_object' },
     }),
   });

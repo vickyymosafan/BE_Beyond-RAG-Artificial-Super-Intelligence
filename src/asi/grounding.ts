@@ -1,9 +1,6 @@
-import type { RetrievalResult, Citation, Source } from '../types';
-import type { CloudflareBindings } from '../types';
+import type { RetrievalResult, Citation, Source, CloudflareBindings } from '../types';
 import { getDocumentTitle } from '../db/queries';
-
-const THRESHOLD_ANSWER = 0.82;
-let THRESHOLD_ABSTAIN = 0.01;
+import { THRESHOLD_ANSWER, THRESHOLD_ABSTAIN, GROUNDING_THRESHOLD, GROUNDING_REGEN_THRESHOLD } from '../constants';
 
 export function shouldAnswer(results: RetrievalResult[]): boolean {
   if (results.length === 0) return false;
@@ -17,9 +14,6 @@ export function shouldAbstain(results: RetrievalResult[]): boolean {
   return topScore < THRESHOLD_ABSTAIN;
 }
 
-export function setAbstainThreshold(threshold: number): void {
-  THRESHOLD_ABSTAIN = threshold;
-}
 
 function tokenize(s: string): Set<string> {
   const words = s.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
@@ -49,7 +43,7 @@ export function keywordRecall(answer: string, context: string): number {
   const stopWords = new Set(['yang', 'dan', 'di', 'dari', 'dengan', 'untuk', 'pada', 'dalam',
     'ini', 'itu', 'tidak', 'akan', 'telah', 'sudah', 'bisa', 'dapat', 'oleh', 'sebagai',
     'lebih', 'saja', 'apa', 'bagaimana', 'mengapa', 'kapan', 'siapa', 'mana', 'apakah',
-    'dari', 'ke', 'ada', 'atau', 'juga', 'satu', 'dapat', 'tentang', 'antara', 'setelah']);
+    'ke', 'ada', 'atau', 'juga', 'satu', 'tentang', 'antara', 'setelah']);
 
   let matched = 0;
   let totalSignificant = 0;
@@ -116,6 +110,6 @@ export function validateGrounding(
   const jScore = jaccardSimilarity(answer, context);
   const recall = keywordRecall(answer, context);
   const phrasesMatch = exactPhraseMatch(answer, context);
-  const score = Math.max(jScore, recall * 0.8) * (phrasesMatch ? 1 : 0.5);
-  return { score, isGrounded: score >= 0.1 };
+  const score = Math.max(jScore, recall * GROUNDING_REGEN_THRESHOLD) * (phrasesMatch ? 1 : 0.5);
+  return { score, isGrounded: score >= GROUNDING_THRESHOLD };
 }

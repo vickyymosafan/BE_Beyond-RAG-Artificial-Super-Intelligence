@@ -1,6 +1,5 @@
 import type { CloudflareBindings } from '../types';
-
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+import { GEMINI_API_URL, COHERE_API_URL, OPENROUTER_API_URL, COHERE_MODEL, OPENROUTER_MODEL, LLM_TEMPERATURE_LOW, LLM_MAX_TOKENS_LARGE, LLM_TOP_P, ERROR_GENERATE_FAILED } from '../constants';
 
 export async function generateAnswer(
   query: string,
@@ -36,9 +35,9 @@ ATURAN KETAT:
         ],
       }],
       generationConfig: {
-        temperature: 0.2,
-        maxOutputTokens: 2048,
-        topP: 0.8,
+        temperature: LLM_TEMPERATURE_LOW,
+        maxOutputTokens: LLM_MAX_TOKENS_LARGE,
+        topP: LLM_TOP_P,
       },
       safetySettings: [
         { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
@@ -65,13 +64,13 @@ ATURAN KETAT:
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!text) {
     console.warn('Gemini returned empty response:', JSON.stringify(data));
-    return 'Maaf, terjadi kesalahan saat menghasilkan jawaban.';
+    return ERROR_GENERATE_FAILED;
   }
 
   return text;
 }
 
-const COHERE_API_URL = 'https://api.cohere.ai/v1/chat';
+
 
 export async function generateCohere(
   query: string,
@@ -89,7 +88,7 @@ export async function generateCohere(
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'command-a-03-2025',
+      model: COHERE_MODEL,
       message: query,
       documents: [{ text: context }],
       preamble: `Anda adalah asisten akademik. Jawab HANYA dari konteks yang diberikan.
@@ -108,10 +107,10 @@ CITATION: ${citations.join('\n')}`,
   }
 
   const data = await res.json() as { text?: string };
-  return data.text || 'Maaf, terjadi kesalahan saat menghasilkan jawaban.';
+  return data.text || ERROR_GENERATE_FAILED;
 }
 
-const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+
 
 export async function generateOpenRouter(
   query: string,
@@ -134,13 +133,13 @@ Jika informasi tidak ditemukan, abstain.`;
       'HTTP-Referer': 'https://rag-ai-agentic.vercel.app',
     },
     body: JSON.stringify({
-      model: 'google/gemma-2-27b-it',
+      model: OPENROUTER_MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `KONTEKS:\n${context}\n\nPERTANYAAN: ${query}\n\nCITATIONS:\n${citations.join('\n')}` },
       ],
-      temperature: 0.2,
-      max_tokens: 2048,
+      temperature: LLM_TEMPERATURE_LOW,
+      max_tokens: LLM_MAX_TOKENS_LARGE,
     }),
   });
 
@@ -153,5 +152,5 @@ Jika informasi tidak ditemukan, abstain.`;
   const data = await res.json() as {
     choices?: Array<{ message?: { content?: string } }>;
   };
-  return data.choices?.[0]?.message?.content || 'Maaf, terjadi kesalahan.';
+  return data.choices?.[0]?.message?.content || ERROR_GENERATE_FAILED;
 }

@@ -1,17 +1,11 @@
 import type { CloudflareBindings, QueryType } from '../types';
-
-const TIMEOUTS = {
-  gemini: 15000,
-  groq: 10000,
-  cohere: 20000,
-  openrouter: 25000,
-};
+import { CIRCUIT_BREAKER_THRESHOLD, CIRCUIT_BREAKER_RESET_MS } from '../constants';
 
 class CircuitBreaker {
   failures: number;
   lastFailureTime: number;
-  readonly threshold: number = 5;
-  readonly resetPeriod: number = 60000;
+  readonly threshold: number = CIRCUIT_BREAKER_THRESHOLD;
+  readonly resetPeriod: number = CIRCUIT_BREAKER_RESET_MS;
 
   constructor() {
     this.failures = 0;
@@ -53,6 +47,7 @@ export async function callWithFallback<T>(
     return fallback();
   }
 
+  // Note: AbortController signal cannot be passed to arbitrary async functions. Timeout is enforced via Promise.race in production if needed.
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 

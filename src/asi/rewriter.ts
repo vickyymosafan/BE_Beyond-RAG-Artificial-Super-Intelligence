@@ -1,6 +1,5 @@
 import type { CloudflareBindings, QueryType, RewriterOutput, ChatMessageContext } from '../types';
-
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+import { GROQ_API_URL, GROQ_MODEL, LLM_TEMPERATURE_MED, LLM_MAX_TOKENS_DEFAULT, REWRITER_MAX_WORDS_FAST_PATH, HISTORY_CONTEXT_DEPTH } from '../constants';
 
 export function shouldSkipRewrite(query: string, history?: ChatMessageContext[]): boolean {
   // If active conversation history exists, do NOT skip so follow-up intent is always resolved!
@@ -11,8 +10,8 @@ export function shouldSkipRewrite(query: string, history?: ChatMessageContext[])
   const lower = query.toLowerCase().trim();
   const words = lower.split(/\s+/);
 
-  // Fast-path for short, direct initial queries (<= 6 words)
-  if (words.length <= 6) {
+  // Fast-path for short, direct initial queries
+  if (words.length <= REWRITER_MAX_WORDS_FAST_PATH) {
     return true;
   }
 
@@ -36,7 +35,7 @@ export async function rewriteAndExpand(
   let historyContext = '';
   if (history && history.length > 0) {
     historyContext = '\nRiwayat Percakapan Sebelumnya:\n' +
-      history.slice(-4).map(h => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.content}`).join('\n') + '\n';
+      history.slice(-HISTORY_CONTEXT_DEPTH).map(h => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.content}`).join('\n') + '\n';
   }
 
   const systemPrompt = `Anda adalah asisten retrieval untuk dokumen akademik universitas.
@@ -57,13 +56,13 @@ Aturan:
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'llama-3.1-8b-instant',
+      model: GROQ_MODEL,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: `${historyContext}Query Baru: "${query}"\nTipe: ${type}\n\nOutput JSON.` },
       ],
-      temperature: 0.3,
-      max_tokens: 500,
+      temperature: LLM_TEMPERATURE_MED,
+      max_tokens: LLM_MAX_TOKENS_DEFAULT,
       response_format: { type: 'json_object' },
     }),
   });

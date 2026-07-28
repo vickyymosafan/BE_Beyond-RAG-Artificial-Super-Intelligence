@@ -1,11 +1,6 @@
-import type { CloudflareBindings } from '../types';
-
-interface FeedbackEntry {
-  query: string;
-  userId: string;
-  rating: 'up' | 'down';
-  timestamp: number;
-}
+import type { CloudflareBindings, FeedbackEntry } from '../types';
+import { hashQuery } from '../utils/hash';
+import { CACHE_TTL_FEEDBACK, CACHE_TTL_POPULAR } from '../constants';
 
 export async function recordFeedback(
   query: string,
@@ -13,12 +8,11 @@ export async function recordFeedback(
   rating: 'up' | 'down',
   env: CloudflareBindings
 ): Promise<void> {
-  const { hashQuery } = await import('../utils/hash');
   const queryHash = await hashQuery(query);
   const feedbackId = `feedback:${queryHash}:${userId}:${Date.now()}`;
 
   const entry: FeedbackEntry = { query, userId, rating, timestamp: Date.now() };
-  await env.KV_CACHE.put(feedbackId, JSON.stringify(entry), { expirationTtl: 86400 * 90 });
+  await env.KV_CACHE.put(feedbackId, JSON.stringify(entry), { expirationTtl: CACHE_TTL_FEEDBACK });
 
   const aggKey = `meta:feedback:${queryHash}`;
   const agg = await env.KV_CACHE.get<{ up: number; down: number }>(aggKey, 'json');
@@ -26,14 +20,13 @@ export async function recordFeedback(
     up: (agg?.up || 0) + (rating === 'up' ? 1 : 0),
     down: (agg?.down || 0) + (rating === 'down' ? 1 : 0),
   };
-  await env.KV_CACHE.put(aggKey, JSON.stringify(updated), { expirationTtl: 86400 * 90 });
+  await env.KV_CACHE.put(aggKey, JSON.stringify(updated), { expirationTtl: CACHE_TTL_FEEDBACK });
 }
 
 export async function applyFeedbackToCache(
   query: string,
   env: CloudflareBindings
 ): Promise<void> {
-  const { hashQuery } = await import('../utils/hash');
   const queryHash = await hashQuery(query);
   const aggKey = `meta:feedback:${queryHash}`;
   const agg = await env.KV_CACHE.get<{ up: number; down: number }>(aggKey, 'json');
@@ -53,7 +46,7 @@ export async function applyFeedbackToCache(
     await env.KV_CACHE.delete(aggKey);
   } else if (netScore > 2) {
     meta.hitCount = Math.max(meta.hitCount, 5);
-    await env.KV_CACHE.put(popKey, JSON.stringify(meta), { expirationTtl: 86400 * 30 });
+    await env.KV_CACHE.put(popKey, JSON.stringify(meta), { expirationTtl: CACHE_TTL_POPULAR });
   }
 }
 

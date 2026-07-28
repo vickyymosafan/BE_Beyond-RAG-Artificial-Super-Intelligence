@@ -1,5 +1,6 @@
 import type { Context, Next } from 'hono';
 import type { CloudflareBindings } from '../types';
+import { RATE_LIMIT_USER_RPM, RATE_LIMIT_WINDOW_MS, ERROR_RATE_LIMIT, PROVIDER_RPM_LIMITS } from '../constants';
 
 export async function rateLimitMiddleware(
   c: Context<{ Bindings: CloudflareBindings }>,
@@ -15,8 +16,8 @@ export async function rateLimitMiddleware(
   if (!allowed) {
     return c.json({
       error: 'Rate limit exceeded',
-      message: 'Maksimal 20 request per menit. Silakan tunggu.',
-      retryAfter: 60,
+      message: ERROR_RATE_LIMIT,
+      retryAfter: Math.ceil(RATE_LIMIT_WINDOW_MS / 1000),
     }, 429);
   }
 
@@ -43,8 +44,8 @@ export class RateLimiterDO {
   async fetch(req: Request) {
     const now = Date.now();
     const history = (await this.state.storage.get<number[]>('history')) || [];
-    const recent = history.filter(t => now - t < 60000);
-    if (recent.length >= 20) {
+    const recent = history.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+    if (recent.length >= RATE_LIMIT_USER_RPM) {
       return new Response(JSON.stringify({ allowed: false, count: recent.length }), { status: 429 });
     }
     recent.push(now);
@@ -61,10 +62,10 @@ export class ProviderRateLimiterDO {
   async fetch(req: Request) {
     const url = new URL(req.url);
     const provider = url.searchParams.get('provider') || 'default';
-    const limit = provider === 'gemini' ? 15 : provider === 'groq' ? 30 : 60;
+    const limit = PROVIDER_RPM_LIMITS[provider] || 60;
     const now = Date.now();
     const history = (await this.state.storage.get<number[]>('history')) || [];
-    const recent = history.filter(t => now - t < 60000);
+    const recent = history.filter(t => now - t < RATE_LIMIT_WINDOW_MS);
     if (recent.length >= limit) {
       return new Response(JSON.stringify({ allowed: false, count: recent.length, limit }), { status: 429 });
     }
