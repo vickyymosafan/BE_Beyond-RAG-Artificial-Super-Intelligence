@@ -2,7 +2,7 @@ import type { RetrievalResult } from '../types';
 
 /**
  * Sentence-Level Context Compressor (Token Optimization & Noise Removal)
- * Extracts high-density matching sentences and strips boilerplate headers/footers.
+ * Safely removes header/footer boilerplate while preserving lists, tables, and document structures.
  */
 export function compressContext(
   results: RetrievalResult[],
@@ -17,19 +17,24 @@ export function compressContext(
     .filter((w) => w.length > 2);
 
   return results.map((r) => {
+    // If the chunk contains structured lists or tables, preserve it intact to avoid cutting data!
+    const isStructuredContent = /^[•\-*]\s+|\n[•\-*]\s+|\n\d+\.\s+|Tabel\s+\d+/i.test(r.content);
+    if (isStructuredContent) {
+      return r;
+    }
+
     // Split content into clean sentences or lines
     const sentences = r.content
       .split(/(?<=[.!?\n])\s+/)
       .map((s) => s.trim())
-      .filter((s) => s.length > 10);
+      .filter((s) => s.length > 5);
 
-    // Filter out obvious header/footer boilerplate noise
+    // Filter out true page header/footer noise (e.g. standalone page numbers)
     const cleanSentences = sentences.filter((s) => {
       const lower = s.toLowerCase();
-      if (lower.startsWith('bab ') && lower.length < 40) return false;
-      if (lower.startsWith('lampiran ') && lower.length < 50) return false;
-      if (lower.startsWith('halaman ') && lower.length < 30) return false;
-      if (lower.includes('daftar isi') || lower.includes('daftar gambar')) return false;
+      // Only remove if it's purely a standalone page number or header margin line
+      if (/^halaman\s+\d+$/i.test(lower)) return false;
+      if (/^dokumen\s+panduan\s+ta/i.test(lower) && lower.length < 30) return false;
       return true;
     });
 
@@ -45,15 +50,15 @@ export function compressContext(
       return { sentence: s, matches };
     });
 
-    // Pick top matching sentences or first 3 clean sentences
+    // Pick matching sentences or clean sentences up to 6 to preserve full context
     const topSentences = scoredSentences
       .filter((item) => item.matches > 0)
-      .slice(0, 3)
+      .slice(0, 6)
       .map((item) => item.sentence);
 
     const compressedContent = topSentences.length > 0
       ? topSentences.join(' ')
-      : cleanSentences.slice(0, 3).join(' ');
+      : cleanSentences.slice(0, 6).join(' ');
 
     return {
       ...r,
