@@ -15,6 +15,7 @@ import { decomposeQuery } from '../asi/sub-question';
 import { selfCritic } from '../asi/critic';
 import { correctiveRAG } from '../asi/corrective';
 import { recordFeedback } from '../asi/feedback';
+import { compressContext } from '../asi/compressor';
 import { checkRPDLimit, trackRPDCall } from '../utils/rpd-tracker';
 import { checkProviderRateLimit } from '../middleware/rate-limiter';
 import { embedQuery } from '../utils/embedding';
@@ -125,6 +126,10 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
     // Top-3 Token Pruning (E-CRAG 85% Token Savings)
     topResults = topResults.slice(0, 3);
     reasoningPath.push(`Top-3 Token Pruning applied: ${topResults.length} high-confidence chunks retained`);
+
+    // Sentence-Level Context Compression (Token Optimization)
+    topResults = compressContext(topResults, query);
+    reasoningPath.push(`Sentence-Level Context Compression applied`);
 
     if (shouldAbstain(topResults)) {
       reasoningPath.push('Retrieval score below abstain threshold (< 0.55)');

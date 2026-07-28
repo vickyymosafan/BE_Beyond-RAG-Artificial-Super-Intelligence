@@ -2,12 +2,34 @@ import type { CloudflareBindings, QueryType, RewriterOutput, ChatMessageContext 
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
+export function shouldSkipRewrite(query: string, history?: ChatMessageContext[]): boolean {
+  // If active conversation history exists, do NOT skip so follow-up intent is always resolved!
+  if (history && history.length > 0) {
+    return false;
+  }
+
+  const lower = query.toLowerCase().trim();
+  const words = lower.split(/\s+/);
+
+  // Fast-path for short, direct initial queries (<= 6 words)
+  if (words.length <= 6) {
+    return true;
+  }
+
+  return false;
+}
+
 export async function rewriteAndExpand(
   query: string,
   type: QueryType,
   env: CloudflareBindings,
   history?: ChatMessageContext[]
 ): Promise<RewriterOutput> {
+  // Check fast-path bypass heuristic
+  if (shouldSkipRewrite(query, history)) {
+    return { rewritten: query, variants: [] };
+  }
+
   const apiKey = env.GROQ_API_KEY;
   if (!apiKey) throw new Error('GROQ_API_KEY not configured');
 
