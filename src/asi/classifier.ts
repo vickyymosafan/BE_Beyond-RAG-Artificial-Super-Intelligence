@@ -1,7 +1,7 @@
 import type { QueryType } from '../types';
 
 const IMAGE_KEYWORDS = ['gambar', 'diagram', 'foto', 'fotografi', 'ilustrasi', 'skema', 'chart', 'grafik', 'visual', 'denah', 'bagan'];
-const TABLE_KEYWORDS = ['tabel', 'kolom', 'baris', 'data', 'angka', 'statistik', 'matriks', 'spreadsheet'];
+const TABLE_KEYWORDS = ['tabel', 'kolom', 'baris', 'data', 'angka', 'statistik', 'matriks', 'spreadsheet', 'format penulisan', 'keterangan dan format'];
 const COMPLEX_INDICATORS = ['dan', 'juga', 'serta', 'bandingkan', 'perbedaan', 'persamaan', 'lalu', 'kemudian', 'setelah itu', 'selain itu'];
 
 export function classifyQuery(query: string): QueryType {

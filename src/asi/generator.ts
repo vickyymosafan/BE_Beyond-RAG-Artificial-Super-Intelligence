@@ -18,7 +18,7 @@ ATURAN KETAT:
 3. JIKA informasi tidak ditemukan dalam konteks, katakan "Maaf, informasi tersebut tidak ditemukan dalam dokumen yang tersedia."
 4. Setiap klaim WAJIB menyertakan sumber: [Nama Dokumen, Hal X]
 5. Gunakan format Markdown untuk struktur jawaban.
-6. Jika ada tabel, tampilkan dalam format markdown.
+6. JIKA PERTANYAAN MEMINTA TABEL ATAU FORMAT DOKUMEN (SEPERTI TABEL 5.5, TABEL 5.6, ATAU KETERANGAN DAN FORMAT PENULISAN), WAJIB MENAMPILKANNYA DALAM FORMAT TABEL MARKDOWN LENGKAP (| No | Bagian | Keterangan | Format Penulisan |). DILARANG KERAS MENGUBAH TABEL MENJADI BULLET POINT ATAU PARAGRAF.
 7. Jika ada kode, tampilkan dalam code block dengan bahasa yang sesuai.
 8. Jika konteks memuat beberapa poin/sub-bab terpisah (misalnya "2) Penomoran Halaman", "3) Tata Bahasa Penulisan"), JAWAB HANYA menggunakan poin yang RELEVAN LANGSUNG dengan pertanyaan. JANGAN mencampuradukkan isi dari poin/sub-bab yang berbeda.
 9. Jika membuat daftar bertingkat (poin 1, 2, 3 lalu sub-poin a, b, c atau sub-sub-poin), gunakan INDENTASI 4 SPASI di depan sub-poin agar format daftar bertingkat (outlining) Microsoft Word terbentuk sempurna.`;
