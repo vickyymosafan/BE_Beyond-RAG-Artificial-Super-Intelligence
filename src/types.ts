@@ -99,3 +99,34 @@ export interface FeedbackEntry {
   timestamp: number;
   resolved?: boolean;
 }
+
+// Self-Improvement Agent types
+export interface LearningLogEntry {
+  id?: number;
+  query: string;
+  originalAnswer: string;
+  improvedAnswer?: string;
+  gapScore: number;
+  gapsFound: string[];
+  missingKeywords: string[];
+  wasImproved: boolean;
+  improvementReason?: string;
+  providerUsed?: string;
+  originalScore: number;
+  improvedScore?: number;
+  createdAt?: string;
+}
+
+export interface GapAnalysisResult {
+  gapScore: number;
+  missingKeywords: string[];
+  gapsFound: string[];
+  shouldImprove: boolean;
+}
+
+export interface SelfImproverContext {
+  query: string;
+  finalAnswer: string;
+  groundingScore: number;
+  citations: Citation[];
+}

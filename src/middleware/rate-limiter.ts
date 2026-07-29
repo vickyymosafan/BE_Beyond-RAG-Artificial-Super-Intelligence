@@ -6,6 +6,11 @@ export async function rateLimitMiddleware(
   c: Context<{ Bindings: CloudflareBindings }>,
   next: Next
 ): Promise<Response | void> {
+  // Exempt admin endpoints & OPTIONS preflight from IP rate limits
+  if (c.req.path.startsWith('/api/admin') || c.req.method === 'OPTIONS') {
+    return await next();
+  }
+
   const userId = c.req.header('X-User-Id') || 'anonymous';
   const doId = c.env.RATE_LIMITER.idFromName(userId);
   const stub = c.env.RATE_LIMITER.get(doId);

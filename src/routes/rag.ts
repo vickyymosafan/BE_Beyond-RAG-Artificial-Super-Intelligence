@@ -19,6 +19,8 @@ import { compressContext } from '../asi/compressor';
 import { checkRPDLimit, trackRPDCall } from '../utils/rpd-tracker';
 import { checkProviderRateLimit } from '../middleware/rate-limiter';
 import { embedQuery } from '../utils/embedding';
+import { runSelfImprovementAgent } from '../asi/self-improver';
+import { getSimilarLearning } from '../db/learning-queries';
 import { TIMEOUT_GROQ, TIMEOUT_GEMINI, TIMEOUT_COHERE, TIMEOUT_OPENROUTER, TIMEOUT_FAST, ERROR_QUOTA_PRIMARY, ERROR_QUOTA_PREPROCESSING, ERROR_NOT_FOUND, ERROR_ABSTAIN, ERROR_ALL_PROVIDERS_FAILED, ERROR_SYSTEM, TOP_K_RESULTS, TOP_K_PRUNED, MAX_CORRECTIVE_RETRIES, GROUNDING_REGEN_THRESHOLD, CRITIC_PASS_THRESHOLD, CRITIC_FALLBACK_SCORE, ERROR_PREFIX } from '../constants';
 
 const ragRouter = new Hono<{ Bindings: CloudflareBindings }>();
@@ -49,6 +51,20 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
         asiScore: cached.asiScore,
         reasoningPath: [...cached.reasoningPath, ...reasoningPath],
         sources: cached.sources,
+      });
+    }
+
+    // ─── ASI Superpowers: Neon DB Learning Log Check ───────────────────────
+    const learned = await getSimilarLearning(query, env);
+    if (learned && learned.wasImproved && learned.improvedAnswer) {
+      reasoningPath.push(`[ASI Superpowers] Autonomous Learning active: Retrieved improved answer from Neon DB (Gap was ${(learned.gapScore * 100).toFixed(1)}%)`);
+      return c.json({
+        answer: learned.improvedAnswer,
+        citations: [],
+        confidence: learned.improvedScore || 0.90,
+        asiScore: learned.improvedScore || 0.90,
+        reasoningPath,
+        sources: [],
       });
     }
 
@@ -323,6 +339,24 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
     };
     if (finalAnswer && !finalAnswer.includes(ERROR_PREFIX)) {
       await setCache(query, cacheEntry, env);
+    }
+
+    // ─── Agent ke-2: Parallel Self-Improvement (Non-Blocking) ───────────────
+    // Menggunakan c.executionCtx.waitUntil() dari Hono/Cloudflare Workers.
+    // Agent ini berjalan di BACKGROUND setelah HTTP response sudah dikirim ke user.
+    // Selalu berjalan untuk SEMUA respon (termasuk respon Abstain/"Maaf") untuk verifikasi dokumen & self-correction.
+    if (finalAnswer) {
+      c.executionCtx.waitUntil(
+        runSelfImprovementAgent(
+          {
+            query,
+            finalAnswer,
+            groundingScore: finalScore,
+            citations,
+          },
+          env
+        )
+      );
     }
 
     return c.json(response);

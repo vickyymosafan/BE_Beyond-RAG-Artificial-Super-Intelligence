@@ -14,7 +14,7 @@ export async function rerankChunks(
     results.map(async (r) => {
       const chunkEmb = await embedQuery(r.content.slice(0, 500), env);
       const cosSim = cosineSimilarity(queryEmb, chunkEmb);
-      const rerankScore = (cosSim * 0.6) + (r.score * 0.4);
+      const rerankScore = cosSim > 0 ? (cosSim * 0.6) + (r.score * 0.4) : r.score;
       return { ...r, score: rerankScore, source: 'rerank' as const };
     })
   );

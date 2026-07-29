@@ -11,10 +11,14 @@ export async function getFromCache(
 
   const exact = await env.KV_CACHE.get<CacheEntry>(`search:${queryHash}`, 'json');
   if (exact && exact.response && !exact.response.includes(ERROR_PREFIX)) {
-    exact.hitCount++;
-    await updatePopAndTTL(exact, env, `search:${queryHash}`);
-    await trackCacheHit(env, 'exact');
-    return exact;
+    if (hasResponseConceptMismatch(query, exact.response)) {
+      console.log(`[Cache] Rejecting mismatched exact cache entry for query: "${query}"`);
+    } else {
+      exact.hitCount++;
+      await updatePopAndTTL(exact, env, `search:${queryHash}`);
+      await trackCacheHit(env, 'exact');
+      return exact;
+    }
   }
 
   const queryEmb = await embedQuery(query, env);
@@ -29,6 +33,8 @@ export async function getFromCache(
 
     const similarity = cosineSimilarity(queryEmb, entry.queryEmbedding);
     if (similarity > SEMANTIC_THRESHOLD && similarity > bestScore) {
+      if (hasConceptConflict(query, entry.query)) continue;
+      if (hasResponseConceptMismatch(query, entry.response)) continue;
       bestScore = similarity;
       bestMatch = entry;
     }
@@ -129,4 +135,63 @@ export async function isNegativePattern(query: string, env: CloudflareBindings):
   const queryHash = await hashQuery(query);
   const pattern = await env.KV_CACHE.get(`negative:${queryHash}`);
   return !!pattern;
+}
+
+function hasConceptConflict(q1: string, q2: string): boolean {
+  const l1 = q1.toLowerCase();
+  const l2 = q2.toLowerCase();
+
+  const strictPairs: [string, string][] = [
+    ['proposal', 'laporan'],
+    ['pembimbing 1', 'pembimbing 2'],
+    ['pembimbing i', 'pembimbing ii'],
+    ['skripsi', 'kkn'],
+    ['kp', 'ta'],
+    ['gambar', 'tabel'],
+    ['kutipan', 'daftar pustaka'],
+    ['tabel 5.5', 'tabel 5.6'],
+    ['sub-bab 5.2', 'sub-bab 5.3'],
+  ];
+
+  for (const [a, b] of strictPairs) {
+    if ((l1.includes(a) && l2.includes(b)) || (l1.includes(b) && l2.includes(a))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function hasResponseConceptMismatch(query: string, response: string): boolean {
+  const q = query.toLowerCase();
+  const r = response.toLowerCase();
+
+  // Jika query minta TABEL tapi respon menyajikan GAMBAR
+  if ((q.includes('tabel') || q.includes('table')) && !q.includes('gambar')) {
+    if (r.includes('aturan penyajian gambar') || r.includes('penyajian gambar pada proposal')) {
+      return true;
+    }
+  }
+
+  // Jika query minta GAMBAR tapi respon menyajikan TABEL
+  if ((q.includes('gambar') || q.includes('image')) && !q.includes('tabel')) {
+    if (r.includes('aturan penyajian tabel') || r.includes('penyajian tabel pada proposal')) {
+      return true;
+    }
+  }
+
+  // Jika query minta PROPOSAL tapi respon menyajikan LAPORAN TUGAS AKHIR 20 poin
+  if (q.includes('proposal') && !q.includes('laporan')) {
+    if (r.includes('sistematika penulisan laporan tugas akhir') || r.includes('tabel 5.6')) {
+      return true;
+    }
+  }
+
+  // Jika query minta LAPORAN tapi respon menyajikan PROPOSAL TUGAS AKHIR 9 poin
+  if (q.includes('laporan') && !q.includes('proposal')) {
+    if (r.includes('sistematika penulisan proposal tugas akhir') || r.includes('tabel 5.5')) {
+      return true;
+    }
+  }
+
+  return false;
 }

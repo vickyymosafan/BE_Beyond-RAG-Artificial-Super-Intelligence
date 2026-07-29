@@ -63,7 +63,7 @@ export const EMBEDDING_DIMENSION = 768;
 export const EMBEDDING_BATCH_SIZE = 25;
 
 // Rate Limits
-export const RATE_LIMIT_USER_RPM = 20;
+export const RATE_LIMIT_USER_RPM = 60;
 export const RATE_LIMIT_WINDOW_MS = 60000;
 export const PROVIDER_RPM_LIMITS: Record<string, number> = { gemini: 15, groq: 30, cohere: 20 };
 export const PROVIDER_RPD_LIMITS: Record<string, { daily: number; monthly?: number }> = {
@@ -87,3 +87,11 @@ export const ERROR_ALL_PROVIDERS_FAILED = '[Maaf, semua layanan tidak tersedia]'
 export const ERROR_GENERATE_FAILED = 'Maaf, terjadi kesalahan saat menghasilkan jawaban.';
 export const ERROR_SYSTEM = 'Maaf, terjadi kesalahan pada sistem. Silakan coba beberapa saat lagi.';
 export const ERROR_RATE_LIMIT = 'Maksimal 20 request per menit. Silakan tunggu.';
+
+// Self-Improvement Agent (Agent ke-2)
+export const SELF_IMPROVER_ENABLED = true;
+export const GAP_THRESHOLD = 0.20;            // Improve jika >20% info dari DB tidak ada di jawaban
+export const TOP_K_BROAD = 20;               // Ambil lebih banyak chunks saat verifikasi
+export const SELF_IMPROVER_MAX_TOKENS = 4096; // Max tokens untuk generate improved answer
+export const MIN_GAP_KEYWORDS = 3;           // Minimum missing keywords sebelum trigger improvement
+export const LEARNING_LOG_TABLE = 'agent_learning_log'; // Nama tabel di Neon DB

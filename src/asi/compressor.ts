@@ -17,8 +17,8 @@ export function compressContext(
     .filter((w) => w.length > 2);
 
   return results.map((r) => {
-    // If the chunk contains structured lists or tables, preserve it intact to avoid cutting data!
-    const isStructuredContent = /^[•\-*]\s+|\n[•\-*]\s+|\n\d+\.\s+|Tabel\s+\d+/i.test(r.content);
+    // If the chunk contains structured lists, tables, or systematika sections, preserve it intact!
+    const isStructuredContent = /^[•\-*]\s+|\n[•\-*]\s+|\n\d+[.)]\s+|^\||\||Tabel\s+\d+|Format Penulisan|Sistematika|Bab\s+\d+/i.test(r.content);
     if (isStructuredContent) {
       return r;
     }
@@ -57,8 +57,8 @@ export function compressContext(
       .map((item) => item.sentence);
 
     const compressedContent = topSentences.length > 0
-      ? topSentences.join(' ')
-      : cleanSentences.slice(0, 6).join(' ');
+      ? topSentences.join('\n')
+      : cleanSentences.slice(0, 6).join('\n');
 
     return {
       ...r,

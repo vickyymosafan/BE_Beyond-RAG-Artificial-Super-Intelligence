@@ -11,6 +11,7 @@ import {
   getDocumentVersions,
   getPopularFAQ,
 } from '../db/admin-queries';
+import { getRecentLearnings, getLearningStats } from '../db/learning-queries';
 import { getRPDStats } from '../utils/rpd-tracker';
 import { getTopCachedQueries, clearAllCache } from '../asi/cache';
 import { invalidateDocCache } from '../asi/cache-invalidation';
@@ -126,6 +127,17 @@ adminRouter.get('/faq', async (c) => {
   const limit = parseInt(c.req.query('limit') || '10', 10);
   const faq = await getPopularFAQ(c.env, Math.min(limit, 50));
   return c.json({ faq });
+});
+
+adminRouter.get('/stats/learning', async (c) => {
+  const stats = await getLearningStats(c.env);
+  return c.json({ stats });
+});
+
+adminRouter.get('/learning-logs', async (c) => {
+  const limit = parseInt(c.req.query('limit') || '50', 10);
+  const logs = await getRecentLearnings(Math.min(limit, 100), c.env);
+  return c.json({ logs });
 });
 
 export default adminRouter;
