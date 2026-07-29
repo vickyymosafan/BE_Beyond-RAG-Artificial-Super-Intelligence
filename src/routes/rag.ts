@@ -7,7 +7,7 @@ import { rewriteAndExpand } from '../asi/rewriter';
 import { adaptiveRetrieve, expandContiguousChunks } from '../asi/retrieval';
 import { rerankChunks } from '../asi/rerank';
 import { multiHopRetrieve } from '../asi/multi-hop';
-import { generateAnswer, generateGroq, generateCohere, generateOpenRouter } from '../asi/generator';
+import { generateAnswer, generateGroq, generateCohere, generateOpenRouter, generateCloudflareAI, generateDeterministic } from '../asi/generator';
 import { shouldAnswer, shouldAbstain, buildCitations, validateGrounding } from '../asi/grounding';
 import { getFromCache, setCache, trackNegativePattern, isNegativePattern } from '../asi/cache';
 import { callWithFallback } from '../asi/router';
@@ -182,6 +182,7 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
     const groqFn = () => generateGroq(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env);
     const cohereFn = () => generateCohere(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env);
     const openrouterFn = () => generateOpenRouter(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env);
+    const cloudflareFn = () => generateCloudflareAI(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env);
 
     let answer = await callWithFallback(
       async () => {
@@ -197,8 +198,13 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
           async () => callWithFallback(
             openrouterFn,
             async () => {
-              reasoningPath.push('Fallback: all providers failed');
-              return `${ERROR_ALL_PROVIDERS_FAILED}\n\nBerdasarkan dokumen yang tersedia:\n\n${context.slice(0, 1000)}`;
+              try {
+                reasoningPath.push('Fallback: attempting Cloudflare Workers AI');
+                return await cloudflareFn();
+              } catch {
+                reasoningPath.push('Fallback: Deterministic Document Extractor (Zero LLM)');
+                return generateDeterministic(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`));
+              }
             },
             'openrouter',
             TIMEOUT_OPENROUTER

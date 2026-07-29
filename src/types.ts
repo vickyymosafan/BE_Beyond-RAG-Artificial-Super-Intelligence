@@ -7,14 +7,21 @@ export interface CloudflareBindings {
   PROVIDER_RATE_LIMITER: DurableObjectNamespace;
   ENVIRONMENT: string;
   GEMINI_API_KEY?: string;
+  GEMINI_API_KEY_2?: string;
+  GEMINI_API_KEY_3?: string;
+  GEMINI_API_KEYS?: string;
   GROQ_API_KEY?: string;
+  GROQ_API_KEYS?: string;
   COHERE_API_KEY?: string;
+  COHERE_API_KEYS?: string;
   OPENROUTER_API_KEY?: string;
+  OPENROUTER_API_KEYS?: string;
   JWT_SECRET?: string;
   CLOUDFLARE_ACCOUNT_ID?: string;
   CLOUDFLARE_API_TOKEN?: string;
   ADMIN_USERNAME?: string;
   ADMIN_PASSWORD?: string;
+  AI?: any;
 }
 
 export type QueryType = 'text' | 'image' | 'table' | 'complex' | 'hybrid';
