@@ -1,6 +1,6 @@
 // API URLs
 export const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-export const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+export const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 export const GEMINI_EMBED_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent';
 export const GEMINI_BATCH_EMBED_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents';
 export const COHERE_API_URL = 'https://api.cohere.ai/v1/chat';

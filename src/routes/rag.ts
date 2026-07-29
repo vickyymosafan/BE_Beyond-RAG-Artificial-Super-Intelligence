@@ -7,7 +7,7 @@ import { rewriteAndExpand } from '../asi/rewriter';
 import { adaptiveRetrieve, expandContiguousChunks } from '../asi/retrieval';
 import { rerankChunks } from '../asi/rerank';
 import { multiHopRetrieve } from '../asi/multi-hop';
-import { generateAnswer, generateCohere, generateOpenRouter } from '../asi/generator';
+import { generateAnswer, generateGroq, generateCohere, generateOpenRouter } from '../asi/generator';
 import { shouldAnswer, shouldAbstain, buildCitations, validateGrounding } from '../asi/grounding';
 import { getFromCache, setCache, trackNegativePattern, isNegativePattern } from '../asi/cache';
 import { callWithFallback } from '../asi/router';
@@ -163,6 +163,7 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
     }
 
     const generateFn = () => generateAnswer(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env);
+    const groqFn = () => generateGroq(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env);
     const cohereFn = () => generateCohere(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env);
     const openrouterFn = () => generateOpenRouter(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env);
 
@@ -174,18 +175,23 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
         return result;
       },
       async () => callWithFallback(
-        cohereFn,
+        groqFn,
         async () => callWithFallback(
-          openrouterFn,
-          async () => {
-            reasoningPath.push('Fallback: all providers failed');
-            return `${ERROR_ALL_PROVIDERS_FAILED}\n\nBerdasarkan dokumen yang tersedia:\n\n${context.slice(0, 1000)}`;
-          },
-          'openrouter',
-          TIMEOUT_OPENROUTER
+          cohereFn,
+          async () => callWithFallback(
+            openrouterFn,
+            async () => {
+              reasoningPath.push('Fallback: all providers failed');
+              return `${ERROR_ALL_PROVIDERS_FAILED}\n\nBerdasarkan dokumen yang tersedia:\n\n${context.slice(0, 1000)}`;
+            },
+            'openrouter',
+            TIMEOUT_OPENROUTER
+          ),
+          'cohere',
+          TIMEOUT_COHERE
         ),
-        'cohere',
-        TIMEOUT_COHERE
+        'groq',
+        TIMEOUT_GROQ
       ),
       'gemini',
       TIMEOUT_GEMINI

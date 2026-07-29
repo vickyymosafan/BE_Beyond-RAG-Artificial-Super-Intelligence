@@ -1,5 +1,5 @@
 import type { CloudflareBindings } from '../types';
-import { GEMINI_API_URL, COHERE_API_URL, OPENROUTER_API_URL, COHERE_MODEL, OPENROUTER_MODEL, LLM_TEMPERATURE_LOW, LLM_MAX_TOKENS_LARGE, LLM_TOP_P, ERROR_GENERATE_FAILED } from '../constants';
+import { GEMINI_API_URL, GROQ_API_URL, GROQ_MODEL_VERSATILE, COHERE_API_URL, OPENROUTER_API_URL, COHERE_MODEL, OPENROUTER_MODEL, LLM_TEMPERATURE_LOW, LLM_MAX_TOKENS_LARGE, LLM_TOP_P, ERROR_GENERATE_FAILED } from '../constants';
 
 export async function generateAnswer(
   query: string,
@@ -156,3 +156,55 @@ Jika informasi tidak ditemukan, abstain.`;
   };
   return data.choices?.[0]?.message?.content || ERROR_GENERATE_FAILED;
 }
+
+export async function generateGroq(
+  query: string,
+  context: string,
+  citations: string[],
+  env: CloudflareBindings
+): Promise<string> {
+  const apiKey = env.GROQ_API_KEY;
+  if (!apiKey) throw new Error('GROQ_API_KEY not configured');
+
+  const systemPrompt = `Anda adalah asisten akademik untuk dokumen panduan TA, KP, KKN, dan Kurikulum Sistem Informasi.
+
+ATURAN KETAT:
+1. Jawab HANYA berdasarkan konteks dokumen yang diberikan di bawah.
+2. JANGAN menambahkan informasi di luar konteks.
+3. JIKA informasi tidak ditemukan dalam konteks, katakan "Maaf, informasi tersebut tidak ditemukan dalam dokumen yang tersedia."
+4. Setiap klaim WAJIB menyertakan sumber: [Nama Dokumen, Hal X]
+5. Gunakan format Markdown untuk struktur jawaban.
+6. JIKA PERTANYAAN MEMINTA TABEL ATAU FORMAT DOKUMEN (SEPERTI TABEL 5.5, TABEL 5.6, ATAU KETERANGAN DAN FORMAT PENULISAN), WAJIB MENAMPILKANNYA DALAM FORMAT TABEL MARKDOWN LENGKAP UNTUK SEMUA BARIS (1 S/D 19). DILARANG MEMOTONG ATAU MENGURANGI BARIS TABEL.
+7. Jika ada kode, tampilkan dalam code block dengan bahasa yang sesuai.
+8. Jika konteks memuat beberapa poin/sub-bab terpisah, JAWAB HANYA menggunakan poin yang RELEVAN LANGSUNG dengan pertanyaan.
+9. Jika membuat daftar bertingkat, gunakan INDENTASI 4 SPASI di depan sub-poin.`;
+
+  const res = await fetch(GROQ_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: GROQ_MODEL_VERSATILE,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `KONTEKS:\n${context}\n\nPERTANYAAN: ${query}\n\nCITATIONS:\n${citations.join('\n')}\n\nJawab dengan markdown:` },
+      ],
+      temperature: LLM_TEMPERATURE_LOW,
+      max_tokens: LLM_MAX_TOKENS_LARGE,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error('Groq Generate error:', err);
+    throw new Error(`Groq generate failed: ${res.status}`);
+  }
+
+  const data = await res.json() as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  return data.choices?.[0]?.message?.content || ERROR_GENERATE_FAILED;
+}
+
