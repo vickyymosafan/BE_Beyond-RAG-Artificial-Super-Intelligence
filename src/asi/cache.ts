@@ -12,8 +12,10 @@ export async function getFromCache(
 
   const exact = await env.KV_CACHE.get<CacheEntry>(`search:${queryHash}`, 'json');
   if (exact && exact.response && !exact.response.includes(ERROR_PREFIX)) {
-    if (hasResponseConceptMismatch(query, exact.response)) {
-      console.log(`[Cache] Rejecting mismatched exact cache entry for query: "${query}"`);
+    const isTruncated = /berikut\s*$/i.test(exact.response.trim()) || exact.response.trim().length < 150;
+    if (isTruncated || hasResponseConceptMismatch(query, exact.response)) {
+      console.log(`[Cache] Purging truncated or mismatched exact cache entry for query: "${query}"`);
+      await env.KV_CACHE.delete(`search:${queryHash}`);
     } else {
       exact.hitCount++;
       await updatePopAndTTL(exact, env, `search:${queryHash}`);
@@ -42,6 +44,13 @@ export async function getFromCache(
     checkedCount++;
     const entry = await env.KV_CACHE.get<CacheEntry>(key.name, 'json');
     if (!entry || !entry.response || entry.response.includes(ERROR_PREFIX)) continue;
+
+    const isTruncated = /berikut\s*$/i.test(entry.response.trim()) || entry.response.trim().length < 150;
+    if (isTruncated) {
+      console.log(`[Cache] Purging truncated semantic cache key: ${key.name}`);
+      await env.KV_CACHE.delete(key.name);
+      continue;
+    }
 
     const similarity = cosineSimilarity(queryEmb, entry.queryEmbedding);
     if (similarity > SEMANTIC_THRESHOLD && similarity > bestScore) {
