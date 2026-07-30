@@ -313,7 +313,7 @@ export async function runSelfImprovementAgent(
           env
         );
 
-        if (improvedAnswer && !improvedAnswer.startsWith('Maaf') && improvedAnswer.length > 50) {
+        if (improvedAnswer && !improvedAnswer.startsWith('Maaf') && improvedAnswer.length > 200) {
           await updateCacheWithImprovedAnswer(ctx, improvedAnswer, env);
           const updateData = {
             improvedAnswer,
@@ -387,7 +387,8 @@ export async function runSelfImprovementAgent(
       );
 
       const wasActuallyImproved = improvedAnswer !== ctx.finalAnswer &&
-        improvedAnswer.length > 50 &&
+        improvedAnswer.length > 200 &&
+        !improvedAnswer.startsWith('Maaf') &&
         provider !== 'error' &&
         provider !== 'none';
 

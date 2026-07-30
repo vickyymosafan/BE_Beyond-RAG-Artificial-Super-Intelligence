@@ -56,7 +56,7 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
 
     // ─── ASI Superpowers: Neon DB Learning Log Check ───────────────────────
     const learned = await getSimilarLearning(query, env);
-    if (learned && learned.wasImproved && learned.improvedAnswer) {
+    if (learned && learned.wasImproved && learned.improvedAnswer && learned.improvedAnswer.length > 500) {
       reasoningPath.push(`[ASI Superpowers] Autonomous Learning active: Retrieved improved answer from Neon DB (Gap was ${(learned.gapScore * 100).toFixed(1)}%)`);
       return c.json({
         answer: learned.improvedAnswer,
@@ -141,7 +141,8 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
     }
 
     // Top-3 Token Pruning (E-CRAG 85% Token Savings) / Contiguous Window Expansion
-    if (queryType === 'table' || queryType === 'complex') {
+    const isStructuredQuery = queryType === 'table' || queryType === 'complex' || /pustaka|tabel|gambar|sistematika/i.test(query);
+    if (isStructuredQuery) {
       topResults = await expandContiguousChunks(topResults, env, 5);
       reasoningPath.push(`Contiguous Table Expansion applied: ${topResults.length} linked document chunks retained`);
     } else {

@@ -186,8 +186,8 @@ export async function expandContiguousChunks(
   const expanded: RetrievalResult[] = [...results];
   const seenPages = new Set(results.map(r => `${r.docId}:${r.pageNumber}`));
 
-  for (const item of results.slice(0, 2)) {
-    const startPage = item.pageNumber + 1;
+  for (const item of results.slice(0, 3)) {
+    const startPage = Math.max(1, item.pageNumber - 1);
     const endPage = item.pageNumber + windowSize;
 
     const adjacent = await sql`

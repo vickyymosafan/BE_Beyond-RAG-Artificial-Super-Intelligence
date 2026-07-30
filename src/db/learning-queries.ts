@@ -251,3 +251,18 @@ export async function getLearningStats(env: CloudflareBindings): Promise<{
   }
 }
 
+/**
+ * Ambil pasangan konflik konsep dinamis dari Neon DB / KV Storage.
+ */
+export async function getDynamicConceptConflicts(env: CloudflareBindings): Promise<[string, string][]> {
+  try {
+    const sql = neon(env.DATABASE_URL);
+    const rows = await sql`
+      SELECT term_a, term_b FROM concept_conflicts WHERE is_active = true
+    ` as Array<{ term_a: string; term_b: string }>;
+    return rows.map(r => [r.term_a, r.term_b]);
+  } catch {
+    return [];
+  }
+}
+

@@ -17,8 +17,8 @@ export function compressContext(
     .filter((w) => w.length > 2);
 
   return results.map((r) => {
-    // If the chunk contains structured lists, tables, or systematika sections, preserve it intact!
-    const isStructuredContent = /^[•\-*]\s+|\n[•\-*]\s+|\n\d+[.)]\s+|^\||\||Tabel\s+\d+|Format Penulisan|Sistematika|Bab\s+\d+/i.test(r.content);
+    // If the chunk contains structured lists (numbered, bulleted, alphabetical a-z), tables, or sistematika/daftar pustaka sections, preserve it intact!
+    const isStructuredContent = /^[•\-*]\s+|\n[•\-*]\s+|\n[a-zA-Z0-9]+[.)]\s+|^[a-zA-Z0-9]+[.)]\s+|^\||\||Tabel\s+\d+|Penyajian|Format Penulisan|Sistematika|Daftar Pustaka|Bab\s+\d+/i.test(r.content);
     if (isStructuredContent) {
       return r;
     }

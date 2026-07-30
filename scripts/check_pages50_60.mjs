@@ -17,16 +17,13 @@ function loadDevVars(filePath) {
   } catch {}
 }
 
-loadDevVars('.dev.vars');
-loadDevVars('backend/.dev.vars');
-
-const sql = neon(process.env.DATABASE_URL);
+const sql = neon('postgresql://neondb_owner:npg_lEOpJQo9k1hI@ep-falling-math-az6bbxl3.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require');
 
 async function run() {
   const rows = await sql`
     SELECT id, page_number, content
     FROM chunks
-    WHERE page_number BETWEEN 50 AND 60
+    WHERE page_number BETWEEN 50 AND 55
     ORDER BY page_number ASC
   `;
   console.log(`Found ${rows.length} chunks on pages 50-60:`);

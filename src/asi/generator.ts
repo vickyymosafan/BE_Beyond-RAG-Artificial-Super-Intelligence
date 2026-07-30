@@ -56,7 +56,7 @@ ATURAN KETAT:
 3. JIKA informasi tidak ditemukan dalam konteks, katakan "Maaf, informasi tersebut tidak ditemukan dalam dokumen yang tersedia."
 4. Setiap klaim WAJIB menyertakan sumber: [Nama Dokumen, Hal X]
 5. Gunakan format Markdown untuk struktur jawaban.
-6. JIKA PERTANYAAN MEMINTA TABEL ATAU FORMAT DOKUMEN (SEPERTI TABEL 5.5, TABEL 5.6, ATAU KETERANGAN DAN FORMAT PENULISAN):
+6. JIKA PERTANYAAN MEMINTA 'TABEL 5.5' ATAU 'TABEL 5.6' (ATAU SISTEMATIKA MATRIKS / KETERANGAN DAN FORMAT PENULISAN TIAP BAGIAN):
    - WAJIB MEMBUAT TABEL MARKDOWN 4 KOLOM LENGKAP (| No | Bagian | Keterangan | Format Penulisan |).
    - WAJIB MEMASUKKAN BARIS PEMBATAS HEADER MARKDOWN ('| --- | --- | --- | --- |') SANGAT PRESISI.
    - WAJIB MEMUTUS SETIAP BARIS TABEL DENGAN NEWLINE ('\n'). DILARANG KERAS MENGGABUNGKAN BARIS TABEL MENJADI SATU PARAGRAF KETIKAN TEKS.
@@ -74,9 +74,17 @@ ATURAN KETAT:
    - TABEL 5.6 ADALAH UNTUK LAPORAN TUGAS AKHIR. JANGAN PERNAH MENGGUNAKAN TABEL 5.5 ATAU SUB-BAB 5.2 (PROPOSAL TUGAS AKHIR).
    - Sistematika Penulisan Laporan Tugas Akhir terdiri dari 20 poin: 1. Halaman Sampul (Cover), 2. Halaman Judul, 3. Lembar Persetujuan Sidang Tugas Akhir, 4. Lembar Pengesahan Dosen Penguji, 5. Lembar Pengesahan Tugas Akhir, 6. Lembar Pernyataan, 7. Prakata, 8. Daftar Isi, 9. Daftar Gambar, 10. Daftar Tabel, 11. Daftar Lampiran, 12. Abstrak, 13. Bab 1 Pendahuluan, 14. Bab 2 Tinjauan Pustaka, 15. Bab 3 Metodologi Penelitian, 16. Bab 4 Hasil dan Pembahasan, 17. Bab 5 Penutup, 18. Daftar Pustaka, 19. Lampiran, 20. Biodata Penulis.
 10. JIKA MEMINTA SISTEMATIKA PENULISAN: WAJIB MENAMPILKAN SELURUH POIN SECARA UTUH DARI POIN PERTAMA SAMPAI TERAKHIR TANPA TERPOTONG.
-11. Jika membuat daftar bertingkat (poin 1, 2, 3 lalu sub-poin a, b, c), gunakan INDENTASI 4 SPASI di depan sub-poin agar format Microsoft Word terbentuk sempurna.`;
+11. Jika membuat daftar bertingkat (poin 1, 2, 3 lalu sub-poin a, b, c), gunakan INDENTASI 4 SPASI di depan sub-poin agar format Microsoft Word terbentuk sempurna.
+12. JIKA PERTANYAAN MEMINTA 'PENYAJIAN TABEL' ATAU 'ATURAN PENYAJIAN TABEL':
+   - WAJIB MENYAJIKAN SELURUH ATURAN PENULISAN TABEL DARI DOKUMEN SECARA UTUH DAN LENGKAP DARI POIN (a) HINGGA POIN (h) TANPA DISINGKAT ATAU TERPOTONG!
+13. JIKA PERTANYAAN MEMINTA 'DAFTAR PUSTAKA' ATAU 'PENULISAN DAFTAR PUSTAKA' ATAU 'TABEL 5.1':
+   - WAJIB MEMBUAT TABEL MARKDOWN 4 KOLOM (| No | Sumber Penulisan | Format Penulisan | Contoh |).
+   - WAJIB MEMASUKKAN BARIS PEMBATAS HEADER MARKDOWN ('| --- | --- | --- | --- |') SANGAT PRESISI.
+   - WAJIB MENAMPILKAN SELURUH 8 KATEGORI SUMBER PENULISAN DARI TABEL 5.1 SECARA UTUH DARI NO 1 SAMPAI NO 8 (Buku, Jurnal, Laporan Tugas Akhir, Website, Prosiding Seminar/Conference, Undang-Undang dan Peraturan, Surat Kabar/Media Cetak, Film/Video) BESERTA SUB-KATEGORI DAN CONTOHNYA DENGAN SANGAT PRESISI DAN TIDAK BOLEH TERPOTONG!`;
 
-  const contextBlock = `--- KONTEKS DOKUMEN ---\n${context}\n\n--- CITATIONS ---\n${citations.join('\n')}`;
+  // Sanitize non-standard OCR unicode symbols (e.g. Private Use Area bytes \uE000-\uF8FF) that break LLM tokenization mid-sentence
+  const cleanContext = context.replace(/[\uE000-\uF8FF]/g, ' ').replace(/\s+/g, ' ');
+  const contextBlock = `--- KONTEKS DOKUMEN ---\n${cleanContext}\n\n--- CITATIONS ---\n${citations.join('\n')}`;
 
   let lastError: Error | null = null;
 
@@ -87,11 +95,13 @@ ATURAN KETAT:
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemPrompt }],
+          },
           contents: [{
             role: 'user',
             parts: [
-              { text: systemPrompt },
-              { text: `KONTEKS:\n${contextBlock}\n\nPERTANYAAN: ${query}\n\nJawab dengan markdown:` },
+              { text: `KONTEKS DOKUMEN:\n${contextBlock}\n\nPERTANYAAN USER: ${query}\n\nJawablah dengan markdown yang rapi, lengkap, dan presisi:` },
             ],
           }],
           generationConfig: {
@@ -122,10 +132,14 @@ ATURAN KETAT:
         }>;
       };
 
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (text) {
+      const candidate = data.candidates?.[0];
+      const text = candidate?.content?.parts?.[0]?.text?.trim();
+      const finishReason = candidate?.finishReason;
+
+      if (text && text.length > 30 && finishReason !== 'SAFETY') {
         return text;
       }
+      console.warn(`[Gemini Key #${i + 1}] Output truncated or unsafe (finishReason: ${finishReason}, length: ${text?.length || 0}), trying next key/provider...`);
     } catch (err) {
       console.warn(`[Gemini Key #${i + 1}] Exception:`, err);
       lastError = err instanceof Error ? err : new Error(String(err));
@@ -277,7 +291,13 @@ ATURAN KETAT:
    - TABEL 5.6 ADALAH UNTUK LAPORAN TUGAS AKHIR. JANGAN PERNAH MENGGUNAKAN TABEL 5.5 ATAU SUB-BAB 5.2 (PROPOSAL TUGAS AKHIR).
    - Sistematika Penulisan Laporan Tugas Akhir terdiri dari 20 poin: 1. Halaman Sampul (Cover), 2. Halaman Judul, 3. Lembar Persetujuan Sidang Tugas Akhir, 4. Lembar Pengesahan Dosen Penguji, 5. Lembar Pengesahan Tugas Akhir, 6. Lembar Pernyataan, 7. Prakata, 8. Daftar Isi, 9. Daftar Gambar, 10. Daftar Tabel, 11. Daftar Lampiran, 12. Abstrak, 13. Bab 1 Pendahuluan, 14. Bab 2 Tinjauan Pustaka, 15. Bab 3 Metodologi Penelitian, 16. Bab 4 Hasil dan Pembahasan, 17. Bab 5 Penutup, 18. Daftar Pustaka, 19. Lampiran, 20. Biodata Penulis.
 10. JIKA MEMINTA SISTEMATIKA PENULISAN: WAJIB MENAMPILKAN SELURUH POIN SECARA UTUH DARI POIN PERTAMA SAMPAI TERAKHIR TANPA TERPOTONG.
-11. Jika membuat daftar bertingkat, gunakan INDENTASI 4 SPASI di depan sub-poin.`;
+11. Jika membuat daftar bertingkat, gunakan INDENTASI 4 SPASI di depan sub-poin.
+12. JIKA PERTANYAAN MEMINTA 'PENYAJIAN TABEL' ATAU 'ATURAN PENYAJIAN TABEL':
+   - WAJIB MENYAJIKAN SELURUH ATURAN PENULISAN TABEL DARI DOKUMEN SECARA UTUH DAN LENGKAP DARI POIN (a) HINGGA POIN (h) TANPA DISINGKAT ATAU TERPOTONG!
+13. JIKA PERTANYAAN MEMINTA 'DAFTAR PUSTAKA' ATAU 'PENULISAN DAFTAR PUSTAKA' ATAU 'TABEL 5.1':
+   - WAJIB MEMBUAT TABEL MARKDOWN 4 KOLOM (| No | Sumber Penulisan | Format Penulisan | Contoh |).
+   - WAJIB MEMASUKKAN BARIS PEMBATAS HEADER MARKDOWN ('| --- | --- | --- | --- |') SANGAT PRESISI.
+   - WAJIB MENAMPILKAN SELURUH 8 KATEGORI SUMBER PENULISAN DARI TABEL 5.1 SECARA UTUH DARI NO 1 SAMPAI NO 8 (Buku, Jurnal, Laporan Tugas Akhir, Website, Prosiding Seminar/Conference, Undang-Undang dan Peraturan, Surat Kabar/Media Cetak, Film/Video) BESERTA SUB-KATEGORI DAN CONTOHNYA DENGAN SANGAT PRESISI DAN TIDAK BOLEH TERPOTONG!`;
 
   let lastError: Error | null = null;
   for (let i = 0; i < apiKeys.length; i++) {

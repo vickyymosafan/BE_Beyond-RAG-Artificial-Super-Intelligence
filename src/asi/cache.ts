@@ -2,6 +2,7 @@ import type { CloudflareBindings, CacheEntry } from '../types';
 import { embedQuery, cosineSimilarity } from '../utils/embedding';
 import { hashQuery } from '../utils/hash';
 import { CACHE_TTL_EXACT, CACHE_TTL_SEMANTIC, CACHE_TTL_MAX, CACHE_TTL_STATS, CACHE_TTL_NEGATIVE, SEMANTIC_THRESHOLD, ERROR_PREFIX } from '../constants';
+import { getDynamicConceptConflicts } from '../db/learning-queries';
 
 export async function getFromCache(
   query: string,
@@ -23,6 +24,7 @@ export async function getFromCache(
 
   const queryEmb = await embedQuery(query, env);
   const cacheKeys = await env.KV_CACHE.list({ prefix: 'semantic:' });
+  const dynamicPairs = await getDynamicConceptConflicts(env);
 
   let bestMatch: CacheEntry | null = null;
   let bestScore = 0;
@@ -33,7 +35,7 @@ export async function getFromCache(
 
     const similarity = cosineSimilarity(queryEmb, entry.queryEmbedding);
     if (similarity > SEMANTIC_THRESHOLD && similarity > bestScore) {
-      if (hasConceptConflict(query, entry.query)) continue;
+      if (hasConceptConflict(query, entry.query, dynamicPairs)) continue;
       if (hasResponseConceptMismatch(query, entry.response)) continue;
       bestScore = similarity;
       bestMatch = entry;
@@ -137,11 +139,11 @@ export async function isNegativePattern(query: string, env: CloudflareBindings):
   return !!pattern;
 }
 
-function hasConceptConflict(q1: string, q2: string): boolean {
+function hasConceptConflict(q1: string, q2: string, dynamicPairs: [string, string][] = []): boolean {
   const l1 = q1.toLowerCase();
   const l2 = q2.toLowerCase();
 
-  const strictPairs: [string, string][] = [
+  const staticPairs: [string, string][] = [
     ['proposal', 'laporan'],
     ['pembimbing 1', 'pembimbing 2'],
     ['pembimbing i', 'pembimbing ii'],
@@ -153,7 +155,9 @@ function hasConceptConflict(q1: string, q2: string): boolean {
     ['sub-bab 5.2', 'sub-bab 5.3'],
   ];
 
-  for (const [a, b] of strictPairs) {
+  const allPairs = [...staticPairs, ...dynamicPairs];
+
+  for (const [a, b] of allPairs) {
     if ((l1.includes(a) && l2.includes(b)) || (l1.includes(b) && l2.includes(a))) {
       return true;
     }
