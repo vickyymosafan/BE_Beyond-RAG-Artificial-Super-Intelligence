@@ -1,6 +1,8 @@
 import { neon } from '@neondatabase/serverless';
 import type { CloudflareBindings, LearningLogEntry } from '../types';
 
+const ARRAY_EMPTY: string[] = [];
+
 /**
  * Simpan satu siklus learning ke Neon DB.
  * Dipanggil oleh Self-Improvement Agent setiap kali verifikasi selesai.
@@ -56,10 +58,10 @@ export async function createInitialLearningLog(
         ${query},
         ${originalAnswer},
         0.0,
-        [],
-        [],
+        ARRAY[]::text[],
+        ARRAY[]::text[],
         FALSE,
-        'Agent-2 sedang menganalisis gap & konteks dokumen di Neon DB...',
+        'Agent-2 Swarm Matrix sedang menganalisis gap & konteks...',
         'in-progress',
         ${originalScore ?? 0.8}
       )
@@ -87,8 +89,8 @@ export async function updateLearningLog(
       UPDATE agent_learning_log
       SET improved_answer = ${entry.improvedAnswer ?? null},
           gap_score = ${entry.gapScore ?? 0},
-          gaps_found = ${entry.gapsFound ?? []},
-          missing_keywords = ${entry.missingKeywords ?? []},
+          gaps_found = ${entry.gapsFound && entry.gapsFound.length > 0 ? entry.gapsFound : ARRAY_EMPTY},
+          missing_keywords = ${entry.missingKeywords && entry.missingKeywords.length > 0 ? entry.missingKeywords : ARRAY_EMPTY},
           was_improved = ${entry.wasImproved ?? false},
           improvement_reason = ${entry.improvementReason ?? null},
           provider_used = ${entry.providerUsed ?? 'completed'},

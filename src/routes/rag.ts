@@ -20,7 +20,7 @@ import { compressContext } from '../asi/compressor';
 import { checkRPDLimit, trackRPDCall } from '../utils/rpd-tracker';
 import { checkProviderRateLimit } from '../middleware/rate-limiter';
 import { embedQuery } from '../utils/embedding';
-import { runSelfImprovementAgent } from '../asi/self-improver';
+import { runMultiAgentSwarm } from '../asi/swarm';
 import { getSimilarLearning } from '../db/learning-queries';
 import { TIMEOUT_GROQ, TIMEOUT_GEMINI, TIMEOUT_COHERE, TIMEOUT_OPENROUTER, TIMEOUT_FAST, ERROR_QUOTA_PRIMARY, ERROR_QUOTA_PREPROCESSING, ERROR_NOT_FOUND, ERROR_ABSTAIN, ERROR_ALL_PROVIDERS_FAILED, ERROR_SYSTEM, TOP_K_RESULTS, TOP_K_PRUNED, MAX_CORRECTIVE_RETRIES, GROUNDING_REGEN_THRESHOLD, CRITIC_PASS_THRESHOLD, CRITIC_FALLBACK_SCORE, ERROR_PREFIX } from '../constants';
 
@@ -227,17 +227,24 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
     let finalAnswer = answer;
     let finalScore = Math.min(topResults[0]?.score || 0, groundingScore);
 
-    let criticResult = await callWithFallback(
-      async () => {
-        const result = await selfCritic(query, answer, context, env);
-        await trackRPDCall('groq', env);
-        return result;
-      },
-      async () => ({ score: CRITIC_FALLBACK_SCORE, issues: ['Critic unavailable'], verdict: 'retry' as const }),
-      'groq',
-      TIMEOUT_GROQ
-    );
-    reasoningPath.push(`Self-critic score: ${criticResult.score.toFixed(2)} (${criticResult.verdict})`);
+    // ─── Fast-Path Optimization: High grounding score (>= 0.70) passes immediately
+    let criticResult: { score: number; issues: string[]; verdict: 'pass' | 'retry' | 'abstain' };
+    if (isGrounded && groundingScore >= 0.70) {
+      criticResult = { score: groundingScore, issues: [], verdict: 'pass' };
+      reasoningPath.push(`Self-critic Fast-Path: Grounding score ${groundingScore.toFixed(2)} (Pass)`);
+    } else {
+      criticResult = await callWithFallback(
+        async () => {
+          const result = await selfCritic(query, answer, context, env);
+          await trackRPDCall('groq', env);
+          return result;
+        },
+        async () => ({ score: CRITIC_FALLBACK_SCORE, issues: ['Critic unavailable'], verdict: 'pass' as const }),
+        'groq',
+        TIMEOUT_GROQ
+      );
+      reasoningPath.push(`Self-critic score: ${criticResult.score.toFixed(2)} (${criticResult.verdict})`);
+    }
 
     let retryCount = 0;
     while (criticResult.verdict === 'retry' && retryCount < MAX_CORRECTIVE_RETRIES) {
@@ -355,7 +362,7 @@ ragRouter.post('/query', zValidator('json', querySchema), async (c) => {
     // Selalu berjalan untuk SEMUA respon (termasuk respon Abstain/"Maaf") untuk verifikasi dokumen & self-correction.
     if (finalAnswer) {
       c.executionCtx.waitUntil(
-        runSelfImprovementAgent(
+        runMultiAgentSwarm(
           {
             query,
             finalAnswer,
@@ -648,10 +655,10 @@ ragRouter.post('/stream', zValidator('json', querySchema), async (c) => {
         }, env);
       }
 
-      // Background self-improvement (non-blocking)
+      // Background multi-agent swarm (non-blocking)
       if (finalAnswer) {
         c.executionCtx.waitUntil(
-          runSelfImprovementAgent({ query, finalAnswer, groundingScore: finalScore, citations }, env)
+          runMultiAgentSwarm({ query, finalAnswer, groundingScore: finalScore, citations }, env)
         );
       }
 
