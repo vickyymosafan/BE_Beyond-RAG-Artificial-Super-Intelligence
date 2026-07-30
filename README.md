@@ -1,6 +1,19 @@
 # ⚡ Agentic RAG Backend Service
 
+![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm_Noncommercial-blue.svg)
+![Architecture: Protected Core](https://img.shields.io/badge/Architecture-Public_Showcase_%2F_Protected_Core-orange.svg)
+![Security: Edge Guard Enabled](https://img.shields.io/badge/Security-Edge_Guard_%2F_License_Lock-red.svg)
+
 Sistem **Backend Agentic Retrieval-Augmented Generation (RAG)** cerdas berbasis kecerdasan buatan (AI) yang dirancang untuk menyajikan pencarian dan pemrosesan dokumen akademik secara cepat, presisi, dan terverifikasi.
+
+---
+
+> [!IMPORTANT]
+> **🔒 Notice regarding Intellectual Property & Demonstration Architecture**
+> 
+> Repositori ini dipublikasikan untuk keperluan **Portofolio Showcase & Evaluasi Rekrutmen**.
+> - **Edge License Guard**: Akses langsung ke Cloudflare Workers API ini secara live dilindungi oleh verifikasi *Origin/Domain Binding* dan *Owner Secret Token*. Request dari domain yang tidak terotorisasi (misalnya clone ilegal) akan otomatis ditolak (`403 Forbidden`).
+> - **Protected Core Engine**: Algoritma RAG proprietary (seperti Dynamic Score-Aware Quad-Fusion D-RRF, Parallel Agent Self-Improver, dan Prompt Engineering Cascade) berada dalam proteksi lisensi non-komersial. Source code lengkap untuk evaluasi wawancara teknis dapat disediakan atas permintaan langsung kepada pemilik project (`vickymosafan`).
 
 ---
 
@@ -42,3 +55,9 @@ Backend ini bertindak sebagai otak pemroses utama (*core AI engine*) dalam arsit
 - **Framework**: Hono Framework
 - **Vector Database**: Neon PostgreSQL (pgvector)
 - **AI Models**: Google Gemini, Groq LLaMA, Cohere, OpenRouter
+
+---
+
+## ⚖️ License
+
+Project ini dilindungi di bawah **[PolyForm Noncommercial License 1.0](LICENSE)**. Penggunaan secara komersial atau peng-kloningan langsung untuk pengakuan karya tanpa izin pemilik tertulis dilarang keras.

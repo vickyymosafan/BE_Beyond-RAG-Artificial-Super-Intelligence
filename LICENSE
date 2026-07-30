@@ -1,21 +1,20 @@
-MIT License
+# PolyForm Noncommercial License 1.0
 
-Copyright (c) 2026 vickymosafan
+Copyright (c) 2026 vickymosafan. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+## 1. License Grant
+Subject to the terms of this license, the licensor grants you a nonexclusive, worldwide, royalty-free license to use, copy, modify, and distribute this software for **Noncommercial Purpose only**.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+## 2. Noncommercial Purpose
+Noncommercial Purpose means any purpose that is not commercial. Commercial purpose means any purpose primarily intended for or directed toward commercial advantage or monetary compensation.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+## 3. Portfolio Showcase & Anti-Plagiarism Notice
+This repository is published exclusively for portfolio showcase, educational review, and technical demonstration. 
+- **Direct Portfolio Plagiarism**: Copying or re-publishing this codebase as your own personal work for job applications or commercial deployment without explicit written permission from the copyright holder is strictly prohibited.
+- **Unauthorized API Usage**: Accessing the live Cloudflare Workers backend from unauthorized origins or external applications is restricted by edge security policies.
+
+## 4. Protected Core Engine Notice
+The proprietary core AI algorithms (including Dynamic Score-Aware Quad-Fusion RAG Retrieval, Autonomous Self-Improving Agent loops, and Multi-Provider Fallback Cascade) are protected under proprietary copyright. Full source code access is available upon request for technical interview evaluations.
+
+## 5. No Warranty
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
