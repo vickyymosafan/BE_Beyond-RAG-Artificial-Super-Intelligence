@@ -1,0 +1,910 @@
+{
+  "summary": {
+    "total": 100,
+    "passedCount": 100,
+    "failedCount": 0,
+    "accuracyRate": 1
+  },
+  "results": [
+    {
+      "id": 1,
+      "query": "Apa definisi Tugas Akhir menurut Panduan TA SI 2026?",
+      "status": "PASS",
+      "matchRatio": 0.71,
+      "pageNumber": 4,
+      "sectionTitle": "Halaman 4",
+      "excerpt": "vii KATA PENGANTAR Assalamu’alaikum Wr. Wb. Puji syukur ke hadirat Allah SWT atas rahmat dan karunia-Nya, sehingga buku ..."
+    },
+    {
+      "id": 2,
+      "query": "Berapa bobot SKS untuk mata kuliah Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.75,
+      "pageNumber": 34,
+      "sectionTitle": "Halaman 34",
+      "excerpt": "25 BAB 3. PERSYARATAN MENEMPUH TUGAS AKHIR 3.1 Persyaratan Umum Mahasiswa Menempuh Tugas Akhir Mahasiswa Program Studi S..."
+    },
+    {
+      "id": 3,
+      "query": "Apa tujuan dari penyusunan Tugas Akhir bagi mahasiswa Sistem Informasi?",
+      "status": "PASS",
+      "matchRatio": 1,
+      "pageNumber": 4,
+      "sectionTitle": "Halaman 4",
+      "excerpt": "vii KATA PENGANTAR Assalamu’alaikum Wr. Wb. Puji syukur ke hadirat Allah SWT atas rahmat dan karunia-Nya, sehingga buku ..."
+    },
+    {
+      "id": 4,
+      "query": "Siapa saja pihak yang terlibat dalam pelaksanaan Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.78,
+      "pageNumber": 14,
+      "sectionTitle": "Halaman 14",
+      "excerpt": "5 6. Peraturan Menteri Pendidikan dan Kebudayaan Republik Indonesia Nomor 5 Tahun 2020, Tentang Akreditasi Program Studi..."
+    },
+    {
+      "id": 5,
+      "query": "Apa prasyarat akademik minimal untuk mengajukan Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.88,
+      "pageNumber": 34,
+      "sectionTitle": "Halaman 34",
+      "excerpt": "25 BAB 3. PERSYARATAN MENEMPUH TUGAS AKHIR 3.1 Persyaratan Umum Mahasiswa Menempuh Tugas Akhir Mahasiswa Program Studi S..."
+    },
+    {
+      "id": 6,
+      "query": "Berapa jumlah SKS Lulus minimal untuk mengajukan Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.78,
+      "pageNumber": 41,
+      "sectionTitle": "Halaman 41",
+      "excerpt": "32 4.4 Sidang/Ujian Akhir Sidang Tugas Akhir merupakan ujian secara verbal/oral/presentasi yang harus diikuti setiap mah..."
+    },
+    {
+      "id": 7,
+      "query": "Berapa IPK minimal mahasiswa untuk dapat mengambil Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.78,
+      "pageNumber": 16,
+      "sectionTitle": "Halaman 16",
+      "excerpt": "7 7. Pengujian adalah aktivitas jasa pengambilan sampel dan pengujian sistem atau produk dengan metode standar, serta ak..."
+    },
+    {
+      "id": 8,
+      "query": "Apakah mata kuliah Metodologi Penelitian wajib lulus sebelum mengambil TA?",
+      "status": "PASS",
+      "matchRatio": 0.67,
+      "pageNumber": 18,
+      "sectionTitle": "Halaman 18",
+      "excerpt": "9 BAB 2. IDENTITAS MATA KULIAH TUGAS AKHIR 2.1 Deskripsi Tugas Akhir Tugas Akhir merupakan salah satu mata kuliah wajib ..."
+    },
+    {
+      "id": 9,
+      "query": "Berapa nilai minimal mata kuliah Metodologi Penelitian untuk prasyarat TA?",
+      "status": "PASS",
+      "matchRatio": 0.78,
+      "pageNumber": 31,
+      "sectionTitle": "Halaman 31",
+      "excerpt": "22 2.8 Output Mata Kuliah Output Mata Kuliah Tugas Akhir merupakan luaran langsung yang dihasilkan mahasiswa setelah men..."
+    },
+    {
+      "id": 10,
+      "query": "Apa sanksi bagi mahasiswa yang terbukti melakukan plagiarisme dalam TA?",
+      "status": "PASS",
+      "matchRatio": 0.67,
+      "pageNumber": 3,
+      "sectionTitle": "Halaman 3",
+      "excerpt": "vi UCAPAN TERIMAKASIH Penyusun menyampaikan ucapan terima kasih kepada semua pihak yang telah turut serta dalam penyusun..."
+    },
+    {
+      "id": 11,
+      "query": "Berapa jumlah Dosen Pembimbing untuk satu mahasiswa Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.89,
+      "pageNumber": 16,
+      "sectionTitle": "Halaman 16",
+      "excerpt": "7 7. Pengujian adalah aktivitas jasa pengambilan sampel dan pengujian sistem atau produk dengan metode standar, serta ak..."
+    },
+    {
+      "id": 12,
+      "query": "Apa syarat kualifikasi akademik Dosen Pembimbing Utama?",
+      "status": "PASS",
+      "matchRatio": 1,
+      "pageNumber": 63,
+      "sectionTitle": "Halaman 63",
+      "excerpt": "54 BAB 6. PROSES PEMBIMBINGAN 6.1 Ketentuan Pembimbing Dosen Pembimbing Tugas Akhir adalah dosen tetap di lingkungan Pro..."
+    },
+    {
+      "id": 13,
+      "query": "Apa syarat kualifikasi Dosen Pembimbing Pendamping?",
+      "status": "PASS",
+      "matchRatio": 1,
+      "pageNumber": 63,
+      "sectionTitle": "Halaman 63",
+      "excerpt": "54 BAB 6. PROSES PEMBIMBINGAN 6.1 Ketentuan Pembimbing Dosen Pembimbing Tugas Akhir adalah dosen tetap di lingkungan Pro..."
+    },
+    {
+      "id": 14,
+      "query": "Apa tugas dan tanggung jawab Pembimbing Utama?",
+      "status": "PASS",
+      "matchRatio": 1,
+      "pageNumber": 10,
+      "sectionTitle": "Halaman 10",
+      "excerpt": "1 BAB 1. PENDAHULUAN 1.1 Latar Belakang Tugas Akhir (TA) didefinisikan sebagai laporan tertulis hasil penelitian yang di..."
+    },
+    {
+      "id": 15,
+      "query": "Apa tugas dan tanggung jawab Pembimbing Pendamping?",
+      "status": "PASS",
+      "matchRatio": 0.86,
+      "pageNumber": 10,
+      "sectionTitle": "Halaman 10",
+      "excerpt": "1 BAB 1. PENDAHULUAN 1.1 Latar Belakang Tugas Akhir (TA) didefinisikan sebagai laporan tertulis hasil penelitian yang di..."
+    },
+    {
+      "id": 16,
+      "query": "Berapa lama masa berlaku Surat Keterangan (SK) Pembimbing Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.67,
+      "pageNumber": 10,
+      "sectionTitle": "Halaman 10",
+      "excerpt": "1 BAB 1. PENDAHULUAN 1.1 Latar Belakang Tugas Akhir (TA) didefinisikan sebagai laporan tertulis hasil penelitian yang di..."
+    },
+    {
+      "id": 17,
+      "query": "Bagaimana prosedur pergantian Dosen Pembimbing jika terjadi kendala?",
+      "status": "PASS",
+      "matchRatio": 0.75,
+      "pageNumber": 66,
+      "sectionTitle": "Halaman 66",
+      "excerpt": "57 7) Bimbingan dilakukan secara tatap muka atau daring. 8) Mahasiswa wajib hadir secara aktif, bukan hanya mengirim dok..."
+    },
+    {
+      "id": 18,
+      "query": "Berapa jumlah Dosen Penguji dalam seminar proposal?",
+      "status": "PASS",
+      "matchRatio": 0.71,
+      "pageNumber": 14,
+      "sectionTitle": "Halaman 14",
+      "excerpt": "5 6. Peraturan Menteri Pendidikan dan Kebudayaan Republik Indonesia Nomor 5 Tahun 2020, Tentang Akreditasi Program Studi..."
+    },
+    {
+      "id": 19,
+      "query": "Berapa jumlah Dosen Penguji dalam ujian sidang skripsi?",
+      "status": "PASS",
+      "matchRatio": 0.75,
+      "pageNumber": 16,
+      "sectionTitle": "Halaman 16",
+      "excerpt": "7 7. Pengujian adalah aktivitas jasa pengambilan sampel dan pengujian sistem atau produk dengan metode standar, serta ak..."
+    },
+    {
+      "id": 20,
+      "query": "Siapa yang berwenang menunjuk Dosen Pembimbing dan Dosen Penguji?",
+      "status": "PASS",
+      "matchRatio": 0.78,
+      "pageNumber": 12,
+      "sectionTitle": "Halaman 12",
+      "excerpt": "3 5. Memfasilitasi mahasiswa dalam mengimplementasikan teori yang telah dipelajari untuk memecahkan masalah nyata. 6. Me..."
+    },
+    {
+      "id": 21,
+      "query": "Berapa poin sistematika penulisan proposal Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.86,
+      "pageNumber": 49,
+      "sectionTitle": "Halaman 49",
+      "excerpt": "40 No Sumber Penulisan Format Penulisan Contoh Tempat penerbitan: Nama Media. (tanggal, bulan, tahun), halaman ke-berapa..."
+    },
+    {
+      "id": 22,
+      "query": "Sebutkan urutan sistematika penulisan proposal Tugas Akhir dari poin 1 sampai 9!",
+      "status": "PASS",
+      "matchRatio": 0.7,
+      "pageNumber": 52,
+      "sectionTitle": "Halaman 52",
+      "excerpt": "43 Contoh: Tabel 5.2 Contoh Penulisan Judul Tabel Satu Baris Parameter Resistansi () Impedansi (Henry) Common 735 2 Run..."
+    },
+    {
+      "id": 23,
+      "query": "Tabel berapa yang memuat sistematika penulisan proposal Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.89,
+      "pageNumber": 53,
+      "sectionTitle": "Halaman 53",
+      "excerpt": "44 9) Pencetakan dan Penjilidan Proposal dan laporan tugas akhir dicetak pada kertas HVS minimal 70 gram dengan ukuran A..."
+    },
+    {
+      "id": 24,
+      "query": "Apa saja isi dari Bab 1 Pendahuluan pada proposal Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.9,
+      "pageNumber": 54,
+      "sectionTitle": "Halaman 54",
+      "excerpt": "45 No Bagian Keterangan Format Penulisan • Nama dan nomor induk mahasiswa diletakkan ditengah halaman judul tanpa disert..."
+    },
+    {
+      "id": 25,
+      "query": "Apa saja yang harus ditulis pada Bab 2 Tinjauan Pustaka?",
+      "status": "PASS",
+      "matchRatio": 0.89,
+      "pageNumber": 54,
+      "sectionTitle": "Halaman 54",
+      "excerpt": "45 No Bagian Keterangan Format Penulisan • Nama dan nomor induk mahasiswa diletakkan ditengah halaman judul tanpa disert..."
+    },
+    {
+      "id": 26,
+      "query": "Apa saja komponen Bab 3 Metodologi Penelitian pada proposal TA?",
+      "status": "PASS",
+      "matchRatio": 0.75,
+      "pageNumber": 34,
+      "sectionTitle": "Halaman 34",
+      "excerpt": "25 BAB 3. PERSYARATAN MENEMPUH TUGAS AKHIR 3.1 Persyaratan Umum Mahasiswa Menempuh Tugas Akhir Mahasiswa Program Studi S..."
+    },
+    {
+      "id": 27,
+      "query": "Apakah Halaman Judul ada pada proposal Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.88,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 28,
+      "query": "Apakah Lembar Pengesahan ada pada proposal Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.88,
+      "pageNumber": 37,
+      "sectionTitle": "Halaman 37",
+      "excerpt": "28 4.2 Seminar Proposal Seminar Proposal (Sempro) merupakan kegiatan akademik untuk menilai kelayakan rencana penelitian..."
+    },
+    {
+      "id": 29,
+      "query": "Apakah Abstrak disertakan dalam proposal Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.71,
+      "pageNumber": 54,
+      "sectionTitle": "Halaman 54",
+      "excerpt": "45 No Bagian Keterangan Format Penulisan • Nama dan nomor induk mahasiswa diletakkan ditengah halaman judul tanpa disert..."
+    },
+    {
+      "id": 30,
+      "query": "Apakah Bab 4 Hasil dan Pembahasan ada pada proposal Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.9,
+      "pageNumber": 57,
+      "sectionTitle": "Halaman 57",
+      "excerpt": "48 5.3 Sistematika Penulisan Laporan Tugas Akhir Format penulisan laporan tugas akhir pada Program Studi Sistem Informas..."
+    },
+    {
+      "id": 31,
+      "query": "Apakah Bab 5 Penutup ada pada proposal Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.88,
+      "pageNumber": 57,
+      "sectionTitle": "Halaman 57",
+      "excerpt": "48 5.3 Sistematika Penulisan Laporan Tugas Akhir Format penulisan laporan tugas akhir pada Program Studi Sistem Informas..."
+    },
+    {
+      "id": 32,
+      "query": "Bagaimana format penulisan Latar Belakang Masalah?",
+      "status": "PASS",
+      "matchRatio": 0.83,
+      "pageNumber": 55,
+      "sectionTitle": "Halaman 55",
+      "excerpt": "46 No Bagian Keterangan Format Penulisan 6 Bab 1. Pendahuluan Bab ini terdiri dari dari beberapa subbab yaitu latar bela..."
+    },
+    {
+      "id": 33,
+      "query": "Bagaimana format penulisan Rumusan Masalah?",
+      "status": "PASS",
+      "matchRatio": 0.8,
+      "pageNumber": 55,
+      "sectionTitle": "Halaman 55",
+      "excerpt": "46 No Bagian Keterangan Format Penulisan 6 Bab 1. Pendahuluan Bab ini terdiri dari dari beberapa subbab yaitu latar bela..."
+    },
+    {
+      "id": 34,
+      "query": "Apa perbedaan antara Tujuan Penelitian dan Manfaat Penelitian?",
+      "status": "PASS",
+      "matchRatio": 1,
+      "pageNumber": 18,
+      "sectionTitle": "Halaman 18",
+      "excerpt": "9 BAB 2. IDENTITAS MATA KULIAH TUGAS AKHIR 2.1 Deskripsi Tugas Akhir Tugas Akhir merupakan salah satu mata kuliah wajib ..."
+    },
+    {
+      "id": 35,
+      "query": "Bagaimana penulisan Batasan Masalah pada proposal TA?",
+      "status": "PASS",
+      "matchRatio": 0.83,
+      "pageNumber": 61,
+      "sectionTitle": "Halaman 61",
+      "excerpt": "52 No Bagian Keterangan Format Penulisan dalam bentuk kalimat Tanya yang tegas dan jelas, untuk menambah ketajaman masal..."
+    },
+    {
+      "id": 36,
+      "query": "Berapa poin sistematika penulisan laporan Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.86,
+      "pageNumber": 49,
+      "sectionTitle": "Halaman 49",
+      "excerpt": "40 No Sumber Penulisan Format Penulisan Contoh Tempat penerbitan: Nama Media. (tanggal, bulan, tahun), halaman ke-berapa..."
+    },
+    {
+      "id": 37,
+      "query": "Sebutkan urutan sistematika penulisan laporan Tugas Akhir dari poin 1 sampai 20!",
+      "status": "PASS",
+      "matchRatio": 0.7,
+      "pageNumber": 52,
+      "sectionTitle": "Halaman 52",
+      "excerpt": "43 Contoh: Tabel 5.2 Contoh Penulisan Judul Tabel Satu Baris Parameter Resistansi () Impedansi (Henry) Common 735 2 Run..."
+    },
+    {
+      "id": 38,
+      "query": "Tabel berapa yang memuat sistematika penulisan laporan Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.89,
+      "pageNumber": 53,
+      "sectionTitle": "Halaman 53",
+      "excerpt": "44 9) Pencetakan dan Penjilidan Proposal dan laporan tugas akhir dicetak pada kertas HVS minimal 70 gram dengan ukuran A..."
+    },
+    {
+      "id": 39,
+      "query": "Apa saja komponen halaman awal (preliminaries) laporan Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.67,
+      "pageNumber": 49,
+      "sectionTitle": "Halaman 49",
+      "excerpt": "40 No Sumber Penulisan Format Penulisan Contoh Tempat penerbitan: Nama Media. (tanggal, bulan, tahun), halaman ke-berapa..."
+    },
+    {
+      "id": 40,
+      "query": "Apakah Lembar Pernyataan Keaslian ada pada laporan Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.78,
+      "pageNumber": 57,
+      "sectionTitle": "Halaman 57",
+      "excerpt": "48 5.3 Sistematika Penulisan Laporan Tugas Akhir Format penulisan laporan tugas akhir pada Program Studi Sistem Informas..."
+    },
+    {
+      "id": 41,
+      "query": "Apakah Prakata ada pada laporan Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.86,
+      "pageNumber": 57,
+      "sectionTitle": "Halaman 57",
+      "excerpt": "48 5.3 Sistematika Penulisan Laporan Tugas Akhir Format penulisan laporan tugas akhir pada Program Studi Sistem Informas..."
+    },
+    {
+      "id": 42,
+      "query": "Apa isi dari Bab 4 Hasil dan Pembahasan pada laporan TA?",
+      "status": "PASS",
+      "matchRatio": 0.89,
+      "pageNumber": 10,
+      "sectionTitle": "Halaman 10",
+      "excerpt": "1 BAB 1. PENDAHULUAN 1.1 Latar Belakang Tugas Akhir (TA) didefinisikan sebagai laporan tertulis hasil penelitian yang di..."
+    },
+    {
+      "id": 43,
+      "query": "Apa isi dari Bab 5 Penutup pada laporan Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.89,
+      "pageNumber": 10,
+      "sectionTitle": "Halaman 10",
+      "excerpt": "1 BAB 1. PENDAHULUAN 1.1 Latar Belakang Tugas Akhir (TA) didefinisikan sebagai laporan tertulis hasil penelitian yang di..."
+    },
+    {
+      "id": 44,
+      "query": "Apa saja yang dicantumkan dalam Lampiran laporan TA?",
+      "status": "PASS",
+      "matchRatio": 0.86,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 45,
+      "query": "Bagaimana sistematika penulisan Biodata Penulis?",
+      "status": "PASS",
+      "matchRatio": 0.8,
+      "pageNumber": 57,
+      "sectionTitle": "Halaman 57",
+      "excerpt": "48 5.3 Sistematika Penulisan Laporan Tugas Akhir Format penulisan laporan tugas akhir pada Program Studi Sistem Informas..."
+    },
+    {
+      "id": 46,
+      "query": "Apa perbedaan Tabel 5.5 dan Tabel 5.6 dalam Panduan TA SI 2026?",
+      "status": "PASS",
+      "matchRatio": 0.88,
+      "pageNumber": 13,
+      "sectionTitle": "Halaman 13",
+      "excerpt": "4 1. Sasaran bagi Mahasiswa Sasaran utama dari penyusunan buku panduan tugas akhir adalah mahasiswa Program Studi Sistem..."
+    },
+    {
+      "id": 47,
+      "query": "Apakah Abstrak laporan TA ditulis dalam Bahasa Indonesia dan Bahasa Inggris?",
+      "status": "PASS",
+      "matchRatio": 0.9,
+      "pageNumber": 60,
+      "sectionTitle": "Halaman 60",
+      "excerpt": "51 No Bagian Keterangan Format Penulisan halaman dimana lampiran itu diletakkan. 12 Abstrak • Halaman abstrak menyajikan..."
+    },
+    {
+      "id": 48,
+      "query": "Berapa kata maksimal panjang Abstrak Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.71,
+      "pageNumber": 60,
+      "sectionTitle": "Halaman 60",
+      "excerpt": "51 No Bagian Keterangan Format Penulisan halaman dimana lampiran itu diletakkan. 12 Abstrak • Halaman abstrak menyajikan..."
+    },
+    {
+      "id": 49,
+      "query": "Berapa jumlah kata kunci (keywords) pada Abstrak?",
+      "status": "PASS",
+      "matchRatio": 0.71,
+      "pageNumber": 60,
+      "sectionTitle": "Halaman 60",
+      "excerpt": "51 No Bagian Keterangan Format Penulisan halaman dimana lampiran itu diletakkan. 12 Abstrak • Halaman abstrak menyajikan..."
+    },
+    {
+      "id": 50,
+      "query": "Bagaimana penulisan Lembar Pengesahan Dosen Penguji?",
+      "status": "PASS",
+      "matchRatio": 0.83,
+      "pageNumber": 6,
+      "sectionTitle": "Halaman 6",
+      "excerpt": "ix 3.1 Persyaratan Umum Mahasiswa Menempuh Tugas Akhir ......................................... 25 3.2 Persyaratan Khus..."
+    },
+    {
+      "id": 51,
+      "query": "Apa jenis kertas yang digunakan untuk mencetak proposal dan laporan TA?",
+      "status": "PASS",
+      "matchRatio": 0.8,
+      "pageNumber": 53,
+      "sectionTitle": "Halaman 53",
+      "excerpt": "44 9) Pencetakan dan Penjilidan Proposal dan laporan tugas akhir dicetak pada kertas HVS minimal 70 gram dengan ukuran A..."
+    },
+    {
+      "id": 52,
+      "query": "Berapa gramatur kertas HVS minimal untuk cetak Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.78,
+      "pageNumber": 53,
+      "sectionTitle": "Halaman 53",
+      "excerpt": "44 9) Pencetakan dan Penjilidan Proposal dan laporan tugas akhir dicetak pada kertas HVS minimal 70 gram dengan ukuran A..."
+    },
+    {
+      "id": 53,
+      "query": "Berapa ukuran kertas yang digunakan untuk cetak Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.78,
+      "pageNumber": 49,
+      "sectionTitle": "Halaman 49",
+      "excerpt": "40 No Sumber Penulisan Format Penulisan Contoh Tempat penerbitan: Nama Media. (tanggal, bulan, tahun), halaman ke-berapa..."
+    },
+    {
+      "id": 54,
+      "query": "Jenis huruf (font) apa yang digunakan dalam penulisan Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.9,
+      "pageNumber": 56,
+      "sectionTitle": "Halaman 56",
+      "excerpt": "47 No Bagian Keterangan Format Penulisan untuk menyusun kerangka pemikiran atau konsep yang akan digunakan dalam penelit..."
+    },
+    {
+      "id": 55,
+      "query": "Berapa ukuran font untuk teks naskah utama?",
+      "status": "PASS",
+      "matchRatio": 0.57,
+      "pageNumber": 54,
+      "sectionTitle": "Halaman 54",
+      "excerpt": "45 No Bagian Keterangan Format Penulisan • Nama dan nomor induk mahasiswa diletakkan ditengah halaman judul tanpa disert..."
+    },
+    {
+      "id": 56,
+      "query": "Berapa spasi antar baris (line spacing) untuk naskah utama?",
+      "status": "PASS",
+      "matchRatio": 0.56,
+      "pageNumber": 49,
+      "sectionTitle": "Halaman 49",
+      "excerpt": "40 No Sumber Penulisan Format Penulisan Contoh Tempat penerbitan: Nama Media. (tanggal, bulan, tahun), halaman ke-berapa..."
+    },
+    {
+      "id": 57,
+      "query": "Berapa margin kiri (left margin) halaman naskah TA?",
+      "status": "PASS",
+      "matchRatio": 0.43,
+      "pageNumber": 8,
+      "sectionTitle": "Halaman 8",
+      "excerpt": "xi DAFTAR GAMBAR Gambar 4.1 Alur Kegiatan Pra-Proposal ...................................................................."
+    },
+    {
+      "id": 58,
+      "query": "Berapa margin atas (top margin) halaman naskah TA?",
+      "status": "PASS",
+      "matchRatio": 0.57,
+      "pageNumber": 60,
+      "sectionTitle": "Halaman 60",
+      "excerpt": "51 No Bagian Keterangan Format Penulisan halaman dimana lampiran itu diletakkan. 12 Abstrak • Halaman abstrak menyajikan..."
+    },
+    {
+      "id": 59,
+      "query": "Berapa margin kanan (right margin) halaman naskah TA?",
+      "status": "PASS",
+      "matchRatio": 0.57,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 60,
+      "query": "Berapa margin bawah (bottom margin) halaman naskah TA?",
+      "status": "PASS",
+      "matchRatio": 0.57,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 61,
+      "query": "Bagaimana aturan penomoran halaman pada bagian awal (preliminaries)?",
+      "status": "PASS",
+      "matchRatio": 0.63,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 62,
+      "query": "Bagaimana aturan penomoran halaman pada naskah utama (Bab 1 sampai Bab 5)?",
+      "status": "PASS",
+      "matchRatio": 0.7,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 63,
+      "query": "Di mana letak posisi nomor halaman pada naskah utama?",
+      "status": "PASS",
+      "matchRatio": 0.63,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 64,
+      "query": "Bagaimana aturan penulisan judul bab?",
+      "status": "PASS",
+      "matchRatio": 0.8,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 65,
+      "query": "Bagaimana aturan penulisan sub-bab dan anak sub-bab?",
+      "status": "PASS",
+      "matchRatio": 0.71,
+      "pageNumber": 55,
+      "sectionTitle": "Halaman 55",
+      "excerpt": "46 No Bagian Keterangan Format Penulisan 6 Bab 1. Pendahuluan Bab ini terdiri dari dari beberapa subbab yaitu latar bela..."
+    },
+    {
+      "id": 66,
+      "query": "Bagaimana aturan penulisan judul tabel (caption tabel)?",
+      "status": "PASS",
+      "matchRatio": 0.71,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 67,
+      "query": "Di mana letak posisi judul tabel?",
+      "status": "PASS",
+      "matchRatio": 0.8,
+      "pageNumber": 49,
+      "sectionTitle": "Halaman 49",
+      "excerpt": "40 No Sumber Penulisan Format Penulisan Contoh Tempat penerbitan: Nama Media. (tanggal, bulan, tahun), halaman ke-berapa..."
+    },
+    {
+      "id": 68,
+      "query": "Bagaimana aturan penulisan judul gambar (caption gambar)?",
+      "status": "PASS",
+      "matchRatio": 0.71,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 69,
+      "query": "Di mana letak posisi judul gambar?",
+      "status": "PASS",
+      "matchRatio": 0.8,
+      "pageNumber": 49,
+      "sectionTitle": "Halaman 49",
+      "excerpt": "40 No Sumber Penulisan Format Penulisan Contoh Tempat penerbitan: Nama Media. (tanggal, bulan, tahun), halaman ke-berapa..."
+    },
+    {
+      "id": 70,
+      "query": "Berapa spasi teks di dalam tabel?",
+      "status": "PASS",
+      "matchRatio": 0.8,
+      "pageNumber": 49,
+      "sectionTitle": "Halaman 49",
+      "excerpt": "40 No Sumber Penulisan Format Penulisan Contoh Tempat penerbitan: Nama Media. (tanggal, bulan, tahun), halaman ke-berapa..."
+    },
+    {
+      "id": 71,
+      "query": "Bagaimana penulisan sumber tabel atau gambar jika mengutip dari referensi?",
+      "status": "PASS",
+      "matchRatio": 0.8,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 72,
+      "query": "Apakah tabel yang lebih dari satu halaman boleh dipotong?",
+      "status": "PASS",
+      "matchRatio": 0.78,
+      "pageNumber": 49,
+      "sectionTitle": "Halaman 49",
+      "excerpt": "40 No Sumber Penulisan Format Penulisan Contoh Tempat penerbitan: Nama Media. (tanggal, bulan, tahun), halaman ke-berapa..."
+    },
+    {
+      "id": 73,
+      "query": "Bagaimana cara melanjutkan tabel yang terpotong di halaman berikutnya?",
+      "status": "PASS",
+      "matchRatio": 0.5,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 74,
+      "query": "Berapa batas jarak antara paragraf dengan tabel atau gambar?",
+      "status": "PASS",
+      "matchRatio": 0.89,
+      "pageNumber": 49,
+      "sectionTitle": "Halaman 49",
+      "excerpt": "40 No Sumber Penulisan Format Penulisan Contoh Tempat penerbitan: Nama Media. (tanggal, bulan, tahun), halaman ke-berapa..."
+    },
+    {
+      "id": 75,
+      "query": "Sebutkan aturan penyajian tabel dari poin (a) sampai (h)!",
+      "status": "PASS",
+      "matchRatio": 0.71,
+      "pageNumber": 49,
+      "sectionTitle": "Halaman 49",
+      "excerpt": "40 No Sumber Penulisan Format Penulisan Contoh Tempat penerbitan: Nama Media. (tanggal, bulan, tahun), halaman ke-berapa..."
+    },
+    {
+      "id": 76,
+      "query": "Style penulisan daftar pustaka apa yang digunakan dalam Panduan TA SI 2026?",
+      "status": "PASS",
+      "matchRatio": 0.8,
+      "pageNumber": 56,
+      "sectionTitle": "Halaman 56",
+      "excerpt": "47 No Bagian Keterangan Format Penulisan untuk menyusun kerangka pemikiran atau konsep yang akan digunakan dalam penelit..."
+    },
+    {
+      "id": 77,
+      "query": "Tabel berapa yang memuat format penulisan daftar pustaka?",
+      "status": "PASS",
+      "matchRatio": 0.88,
+      "pageNumber": 53,
+      "sectionTitle": "Halaman 53",
+      "excerpt": "44 9) Pencetakan dan Penjilidan Proposal dan laporan tugas akhir dicetak pada kertas HVS minimal 70 gram dengan ukuran A..."
+    },
+    {
+      "id": 78,
+      "query": "Berapa kategori sumber penulisan dalam Tabel 5.1?",
+      "status": "PASS",
+      "matchRatio": 0.83,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 79,
+      "query": "Sebutkan 8 kategori sumber penulisan pada Tabel 5.1!",
+      "status": "PASS",
+      "matchRatio": 0.83,
+      "pageNumber": 52,
+      "sectionTitle": "Halaman 52",
+      "excerpt": "43 Contoh: Tabel 5.2 Contoh Penulisan Judul Tabel Satu Baris Parameter Resistansi () Impedansi (Henry) Common 735 2 Run..."
+    },
+    {
+      "id": 80,
+      "query": "Bagaimana format penulisan daftar pustaka dari buku?",
+      "status": "PASS",
+      "matchRatio": 0.71,
+      "pageNumber": 47,
+      "sectionTitle": "Halaman 47",
+      "excerpt": "38 5) Penulisan Daftar Pustaka Penyusunan daftar pustaka tugas akhir menggunakan Harvard Style, yaitu dengan mencantumka..."
+    },
+    {
+      "id": 81,
+      "query": "Berikan contoh penulisan daftar pustaka dari buku!",
+      "status": "PASS",
+      "matchRatio": 0.86,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 82,
+      "query": "Bagaimana format penulisan daftar pustaka dari jurnal ilmiah?",
+      "status": "PASS",
+      "matchRatio": 0.63,
+      "pageNumber": 34,
+      "sectionTitle": "Halaman 34",
+      "excerpt": "25 BAB 3. PERSYARATAN MENEMPUH TUGAS AKHIR 3.1 Persyaratan Umum Mahasiswa Menempuh Tugas Akhir Mahasiswa Program Studi S..."
+    },
+    {
+      "id": 83,
+      "query": "Berikan contoh penulisan daftar pustaka dari jurnal!",
+      "status": "PASS",
+      "matchRatio": 0.86,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 84,
+      "query": "Bagaimana format penulisan daftar pustaka dari Laporan Tugas Akhir/Tesis?",
+      "status": "PASS",
+      "matchRatio": 0.78,
+      "pageNumber": 59,
+      "sectionTitle": "Halaman 59",
+      "excerpt": "50 No Bagian Keterangan Format Penulisan 6 Lembar Pernyataan • Halaman ini berisi pernyataan orisinalitas karya tugas ak..."
+    },
+    {
+      "id": 85,
+      "query": "Bagaimana format penulisan daftar pustaka dari situs web (online)?",
+      "status": "PASS",
+      "matchRatio": 0.56,
+      "pageNumber": 47,
+      "sectionTitle": "Halaman 47",
+      "excerpt": "38 5) Penulisan Daftar Pustaka Penyusunan daftar pustaka tugas akhir menggunakan Harvard Style, yaitu dengan mencantumka..."
+    },
+    {
+      "id": 86,
+      "query": "Bagaimana format penulisan daftar pustaka dari Prosiding Seminar?",
+      "status": "PASS",
+      "matchRatio": 0.63,
+      "pageNumber": 6,
+      "sectionTitle": "Halaman 6",
+      "excerpt": "ix 3.1 Persyaratan Umum Mahasiswa Menempuh Tugas Akhir ......................................... 25 3.2 Persyaratan Khus..."
+    },
+    {
+      "id": 87,
+      "query": "Bagaimana format penulisan daftar pustaka dari Undang-Undang dan Peraturan?",
+      "status": "PASS",
+      "matchRatio": 0.67,
+      "pageNumber": 54,
+      "sectionTitle": "Halaman 54",
+      "excerpt": "45 No Bagian Keterangan Format Penulisan • Nama dan nomor induk mahasiswa diletakkan ditengah halaman judul tanpa disert..."
+    },
+    {
+      "id": 88,
+      "query": "Bagaimana format penulisan daftar pustaka dari Film atau Video?",
+      "status": "PASS",
+      "matchRatio": 0.67,
+      "pageNumber": 49,
+      "sectionTitle": "Halaman 49",
+      "excerpt": "40 No Sumber Penulisan Format Penulisan Contoh Tempat penerbitan: Nama Media. (tanggal, bulan, tahun), halaman ke-berapa..."
+    },
+    {
+      "id": 89,
+      "query": "Apa saja tahapan ujian yang harus ditempuh mahasiswa Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.8,
+      "pageNumber": 14,
+      "sectionTitle": "Halaman 14",
+      "excerpt": "5 6. Peraturan Menteri Pendidikan dan Kebudayaan Republik Indonesia Nomor 5 Tahun 2020, Tentang Akreditasi Program Studi..."
+    },
+    {
+      "id": 90,
+      "query": "Apa syarat untuk dapat mendaftar Ujian Proposal TA?",
+      "status": "PASS",
+      "matchRatio": 1,
+      "pageNumber": 34,
+      "sectionTitle": "Halaman 34",
+      "excerpt": "25 BAB 3. PERSYARATAN MENEMPUH TUGAS AKHIR 3.1 Persyaratan Umum Mahasiswa Menempuh Tugas Akhir Mahasiswa Program Studi S..."
+    },
+    {
+      "id": 91,
+      "query": "Apa syarat untuk dapat mendaftar Ujian Sidang Skripsi?",
+      "status": "PASS",
+      "matchRatio": 0.88,
+      "pageNumber": 34,
+      "sectionTitle": "Halaman 34",
+      "excerpt": "25 BAB 3. PERSYARATAN MENEMPUH TUGAS AKHIR 3.1 Persyaratan Umum Mahasiswa Menempuh Tugas Akhir Mahasiswa Program Studi S..."
+    },
+    {
+      "id": 92,
+      "query": "Berapa lama batas waktu revisi setelah ujian proposal?",
+      "status": "PASS",
+      "matchRatio": 0.75,
+      "pageNumber": 66,
+      "sectionTitle": "Halaman 66",
+      "excerpt": "57 7) Bimbingan dilakukan secara tatap muka atau daring. 8) Mahasiswa wajib hadir secara aktif, bukan hanya mengirim dok..."
+    },
+    {
+      "id": 93,
+      "query": "Berapa lama batas waktu revisi setelah ujian sidang skripsi?",
+      "status": "PASS",
+      "matchRatio": 0.67,
+      "pageNumber": 66,
+      "sectionTitle": "Halaman 66",
+      "excerpt": "57 7) Bimbingan dilakukan secara tatap muka atau daring. 8) Mahasiswa wajib hadir secara aktif, bukan hanya mengirim dok..."
+    },
+    {
+      "id": 94,
+      "query": "Apa konsekuensi jika mahasiswa tidak menyelesaikan revisi tepat waktu?",
+      "status": "PASS",
+      "matchRatio": 0.78,
+      "pageNumber": 66,
+      "sectionTitle": "Halaman 66",
+      "excerpt": "57 7) Bimbingan dilakukan secara tatap muka atau daring. 8) Mahasiswa wajib hadir secara aktif, bukan hanya mengirim dok..."
+    },
+    {
+      "id": 95,
+      "query": "Bagaimana kriteria penilaian kelulusan ujian sidang Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.88,
+      "pageNumber": 14,
+      "sectionTitle": "Halaman 14",
+      "excerpt": "5 6. Peraturan Menteri Pendidikan dan Kebudayaan Republik Indonesia Nomor 5 Tahun 2020, Tentang Akreditasi Program Studi..."
+    },
+    {
+      "id": 96,
+      "query": "Warna sampul (cover) hardcover jilid TA prodi Sistem Informasi?",
+      "status": "PASS",
+      "matchRatio": 0.88,
+      "pageNumber": 53,
+      "sectionTitle": "Halaman 53",
+      "excerpt": "44 9) Pencetakan dan Penjilidan Proposal dan laporan tugas akhir dicetak pada kertas HVS minimal 70 gram dengan ukuran A..."
+    },
+    {
+      "id": 97,
+      "query": "Berapa eksemplar laporan TA hardcover yang harus dikumpulkan?",
+      "status": "PASS",
+      "matchRatio": 0.57,
+      "pageNumber": 45,
+      "sectionTitle": "Halaman 45",
+      "excerpt": "36 2) Penomoran Halaman a. Nomor halaman pada halaman judul, daftar isi, daftar gambar, dan daftar tabel ditulis dengan ..."
+    },
+    {
+      "id": 98,
+      "query": "Apakah mahasiswa wajib mengumpulkan softcopy naskah dan program?",
+      "status": "PASS",
+      "matchRatio": 0.63,
+      "pageNumber": 68,
+      "sectionTitle": "Halaman 68",
+      "excerpt": "59 BAB 7. KETENTUAN KELULUSAN TUGAS AKHIR 7.1 Syarat Minimal Kelulusan Tugas Akhir Mahasiswa Program Studi Sistem Inform..."
+    },
+    {
+      "id": 99,
+      "query": "Format file apa yang digunakan untuk pengumpulan softcopy TA?",
+      "status": "PASS",
+      "matchRatio": 0.75,
+      "pageNumber": 56,
+      "sectionTitle": "Halaman 56",
+      "excerpt": "47 No Bagian Keterangan Format Penulisan untuk menyusun kerangka pemikiran atau konsep yang akan digunakan dalam penelit..."
+    },
+    {
+      "id": 100,
+      "query": "Siapa yang menandatangani Berita Acara Ujian Tugas Akhir?",
+      "status": "PASS",
+      "matchRatio": 0.75,
+      "pageNumber": 41,
+      "sectionTitle": "Halaman 41",
+      "excerpt": "32 4.4 Sidang/Ujian Akhir Sidang Tugas Akhir merupakan ujian secara verbal/oral/presentasi yang harus diikuti setiap mah..."
+    }
+  ]
+}

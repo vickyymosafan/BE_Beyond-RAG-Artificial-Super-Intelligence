@@ -17,6 +17,7 @@ export const DB_SCHEMA_PG = [
   `CREATE TABLE IF NOT EXISTS chunks (
     id TEXT PRIMARY KEY,
     doc_id TEXT NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+    parent_id TEXT REFERENCES chunks(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
     content_type TEXT NOT NULL CHECK(content_type IN ('text', 'table', 'image_ref', 'hybrid')),
     page_number INTEGER,
@@ -24,6 +25,7 @@ export const DB_SCHEMA_PG = [
     section_hierarchy TEXT,
     chunk_index INTEGER NOT NULL,
     embedding vector(768),
+    chunk_hash TEXT,
     metadata TEXT DEFAULT '{}',
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -102,4 +104,33 @@ export const DB_SCHEMA_PG = [
   `CREATE INDEX IF NOT EXISTS idx_graph_entities_doc ON graph_entities(doc_id)`,
   `CREATE INDEX IF NOT EXISTS idx_graph_rel_source ON graph_relationships(source_entity_id)`,
   `CREATE INDEX IF NOT EXISTS idx_graph_rel_target ON graph_relationships(target_entity_id)`,
+  // ─── AUTONOMOUS SELF-EVOLVING ENGINE TABLES ────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS agent_system_metrics (
+    id SERIAL PRIMARY KEY,
+    metric_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    total_queries INTEGER DEFAULT 0,
+    avg_grounding_score FLOAT DEFAULT 0.0,
+    avg_asi_score FLOAT DEFAULT 0.0,
+    cache_hit_rate FLOAT DEFAULT 0.0,
+    auto_improvements_count INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE TABLE IF NOT EXISTS agent_prompt_versions (
+    id SERIAL PRIMARY KEY,
+    prompt_name TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    system_prompt TEXT NOT NULL,
+    benchmark_score FLOAT DEFAULT 0.0,
+    is_active BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE TABLE IF NOT EXISTS agent_auto_benchmarks (
+    id SERIAL PRIMARY KEY,
+    test_name TEXT NOT NULL,
+    passed_count INTEGER NOT NULL,
+    failed_count INTEGER NOT NULL,
+    accuracy_rate FLOAT NOT NULL,
+    execution_details JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
 ];

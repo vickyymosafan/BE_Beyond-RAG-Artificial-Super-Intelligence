@@ -35,13 +35,15 @@ export async function adaptiveRetrieve(
   }
 
   const embedding = await embedQuery(query, env);
-  const [vectorResults, bm25Results, domainResults] = await Promise.all([
+  const [vectorResults, bm25Results, domainResults, graphResults] = await Promise.all([
     vectorSearch(embedding, adjustedTopK, env, docFilter),
     bm25Search(query, adjustedTopK, env),
     retrieveDomainSpecific(query, type, env, docFilter),
+    retrieveGraphEntities(query, env),
   ]);
 
-  const fused = fusionWeighted(vectorResults, bm25Results, strategy);
+  // ─── [BEYOND-RRF SUPERPOWER] Dynamic Score-Aware Quad-Fusion (D-RRF) ───────────
+  const fused = dynamicRrfFusion(vectorResults, bm25Results, graphResults, type);
   return [...fused, ...domainResults].sort((a, b) => b.score - a.score);
 }
 
@@ -146,33 +148,84 @@ async function retrieveTables(
   }));
 }
 
-function fusionWeighted(
+/**
+ * ─── D-RRF (DYNAMIC SCORE-AWARE RECIPROCAL RANK FUSION) ENGINE ──────────────────
+ * Beyond-RRF Engine incorporating:
+ * 1. Score-Aware Sigmoid Scaling: Preserves raw distance magnitude \sigma(S).
+ * 2. Dynamic Peluruhan k_m(Q): Adaptive k constant based on query intent.
+ * 3. Quad-Vector Fusion: Merges Dense HNSW, Sparse BM25, and GraphRAG Entity Traversal.
+ */
+export function dynamicRrfFusion(
   vector: RetrievalResult[],
   bm25: RetrievalResult[],
-  strategy: { vector: number; bm25: number; topK: number }
+  graph: RetrievalResult[],
+  queryType: QueryType
 ): RetrievalResult[] {
-  const seen = new Set<string>();
-  const fused: RetrievalResult[] = [];
+  const channelWeights = {
+    text: { vector: 0.55, bm25: 0.25, graph: 0.20, k: 30 },
+    table: { vector: 0.20, bm25: 0.50, graph: 0.30, k: 15 },
+    image: { vector: 0.70, bm25: 0.15, graph: 0.15, k: 35 },
+    complex: { vector: 0.35, bm25: 0.25, graph: 0.40, k: 25 },
+    hybrid: { vector: 0.45, bm25: 0.30, graph: 0.25, k: 30 },
+  }[queryType] || { vector: 0.40, bm25: 0.30, graph: 0.30, k: 30 };
 
-  const hasVector = vector.length > 0;
-  const vectorW = hasVector ? strategy.vector : 0;
-  const bm25W = hasVector ? strategy.bm25 : 1.0;
+  const scoreMap = new Map<string, { result: RetrievalResult; rrfScore: number }>();
 
-  for (const v of vector) {
-    fused.push({ ...v, score: v.score * vectorW, source: 'fusion' as const });
-    seen.add(v.chunkId);
-  }
+  const processChannel = (results: RetrievalResult[], weight: number) => {
+    results.forEach((item, rank) => {
+      // Sigmoid score scaling to preserve distance magnitude (prevents rank blindness)
+      const rawScore = Number.isNaN(item.score) ? 0 : item.score;
+      const scoreScale = 1 + (1 / (1 + Math.exp(-Math.abs(rawScore))));
+      const contribution = (weight * scoreScale) / (channelWeights.k + (rank + 1));
 
-  for (const b of bm25) {
-    if (!seen.has(b.chunkId)) {
-      const score = b.score < 0 ? 1.0 / (1 + Math.abs(b.score)) : b.score;
-      fused.push({ ...b, score: score * bm25W, source: 'fusion' as const });
-    }
-  }
+      const existing = scoreMap.get(item.chunkId);
+      if (existing) {
+        existing.rrfScore += contribution;
+      } else {
+        scoreMap.set(item.chunkId, { result: item, rrfScore: contribution });
+      }
+    });
+  };
 
-  return fused
+  processChannel(vector, channelWeights.vector);
+  processChannel(bm25, channelWeights.bm25);
+  processChannel(graph, channelWeights.graph);
+
+  return Array.from(scoreMap.values())
+    .map(({ result, rrfScore }) => ({ ...result, score: rrfScore, source: 'fusion' as const }))
     .sort((a, b) => b.score - a.score)
-    .slice(0, strategy.topK * 2);
+    .slice(0, channelWeights.k * 2);
+}
+
+async function retrieveGraphEntities(
+  query: string,
+  env: CloudflareBindings
+): Promise<RetrievalResult[]> {
+  try {
+    const sql = neon(env.DATABASE_URL);
+    const keywords = query.replace(/[^\w\s]/g, '').split(/\s+/).filter(w => w.length > 2);
+    if (keywords.length === 0) return [];
+
+    const rows = await sql`
+      SELECT id, doc_id, entity_name, entity_type, description
+      FROM graph_entities
+      WHERE ${keywords.map(kw => sql`(entity_name ILIKE ${'%' + kw + '%'} OR description ILIKE ${'%' + kw + '%'})`).reduce((a, b) => sql`${a} OR ${b}`)}
+      LIMIT ${TOP_K_RESULTS}
+    ` as Array<Record<string, unknown>>;
+
+    return rows.map((r, i) => ({
+      chunkId: `graph:${r.id}`,
+      docId: `${r.doc_id}`,
+      content: `[KNOWLEDGE GRAPH ENTITY]: ${r.entity_name} (${r.entity_type}) — ${r.description}`,
+      contentType: 'text',
+      pageNumber: 1,
+      sectionTitle: `${r.entity_name}`,
+      score: 0.80 - (i * 0.05),
+      source: 'fusion' as const,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export async function expandContiguousChunks(
