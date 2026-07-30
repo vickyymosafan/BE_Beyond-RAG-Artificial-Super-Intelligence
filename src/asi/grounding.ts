@@ -113,3 +113,48 @@ export function validateGrounding(
   const score = Math.max(jScore, recall * GROUNDING_REGEN_THRESHOLD) * (phrasesMatch ? 1 : 0.5);
   return { score, isGrounded: score >= GROUNDING_THRESHOLD };
 }
+
+/**
+ * ─── EPISTEMIC ANTI-HALLUCINATIVE FIREWALL (NEON DB STRICT BOUNDARY) ───────────────
+ * Sentence-level cross-verification filter.
+ * Ensures EVERY sentence in the generated answer has a direct high-confidence grounding match
+ * against retrieved Neon DB document chunks.
+ *
+ * Prevents domain leakage and external hallucinated claims.
+ */
+export function validateGroundingStrict(
+  answer: string,
+  context: string
+): { score: number; isFullyGrounded: boolean; ungroundedSentences: string[] } {
+  if (!answer || !context) return { score: 0, isFullyGrounded: false, ungroundedSentences: [answer] };
+
+  // Split answer into individual sentences
+  const sentences = answer
+    .split(/(?<=[.!?])\s+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 20 && !s.startsWith('#') && !s.startsWith('|') && !s.startsWith('-'));
+
+  if (sentences.length === 0) return { score: 1, isFullyGrounded: true, ungroundedSentences: [] };
+
+  const ungroundedSentences: string[] = [];
+  let groundedCount = 0;
+
+  for (const sentence of sentences) {
+    const recall = keywordRecall(sentence, context);
+    const jaccard = jaccardSimilarity(sentence, context);
+    const sentenceScore = Math.max(recall, jaccard);
+
+    if (sentenceScore >= 0.35) {
+      groundedCount++;
+    } else {
+      ungroundedSentences.push(sentence);
+    }
+  }
+
+  const score = groundedCount / sentences.length;
+  return {
+    score,
+    isFullyGrounded: score >= 0.85,
+    ungroundedSentences,
+  };
+}

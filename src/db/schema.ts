@@ -74,4 +74,32 @@ export const DB_SCHEMA_PG = [
   `CREATE INDEX IF NOT EXISTS idx_tables_doc_id ON extracted_tables(doc_id)`,
   `CREATE INDEX IF NOT EXISTS idx_images_doc_id ON extracted_images(doc_id)`,
   `CREATE INDEX IF NOT EXISTS idx_doc_versions_doc_id ON document_versions(doc_id)`,
+  // ─── GRAPHRAG KNOWLEDGE GRAPH TABLES ──────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS graph_entities (
+    id TEXT PRIMARY KEY,
+    doc_id TEXT REFERENCES documents(id) ON DELETE CASCADE,
+    entity_name TEXT NOT NULL,
+    entity_type TEXT NOT NULL,
+    description TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE TABLE IF NOT EXISTS graph_relationships (
+    id TEXT PRIMARY KEY,
+    source_entity_id TEXT REFERENCES graph_entities(id) ON DELETE CASCADE,
+    target_entity_id TEXT REFERENCES graph_entities(id) ON DELETE CASCADE,
+    relationship_type TEXT NOT NULL,
+    weight FLOAT DEFAULT 1.0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE TABLE IF NOT EXISTS graph_community_summaries (
+    id TEXT PRIMARY KEY,
+    community_level INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    findings JSONB DEFAULT '[]'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_graph_entities_doc ON graph_entities(doc_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_graph_rel_source ON graph_relationships(source_entity_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_graph_rel_target ON graph_relationships(target_entity_id)`,
 ];
