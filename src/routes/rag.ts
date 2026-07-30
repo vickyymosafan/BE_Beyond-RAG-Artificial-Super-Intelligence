@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { streamSSE } from 'hono/streaming';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 import type { CloudflareBindings, QueryRequest, QueryResponse } from '../types';
@@ -394,6 +395,280 @@ ragRouter.post('/feedback', zValidator('json', feedbackSchema), async (c) => {
   } catch (error) {
     return c.json({ error: 'Internal server error' }, 500);
   }
+});
+
+// ─── SSE-1 SUPERPOWER: Real-Time ASI Streaming Endpoint ─────────────────────────────────
+// Streams live pipeline events via Server-Sent Events (SSE) using Hono streamSSE.
+// Ref: Context7 /honojs/hono — streamSSE sets SSE headers automatically:
+//   Content-Type: text/event-stream, Cache-Control: no-cache, Connection: keep-alive
+//
+// Event types emitted:
+//   thinking    — pipeline stage update (string description)
+//   classified  — query type classification result
+//   retrieved   — number of chunks retrieved from Neon DB
+//   generated   — LLM answer token stream start marker
+//   grounded    — grounding validation score
+//   critic      — self-critic verdict and score
+//   done        — final JSON payload (answer, citations, asiScore, reasoningPath, sources)
+//   error       — pipeline error details
+// ─────────────────────────────────────────────────────────────────────────────────
+ragRouter.post('/stream', zValidator('json', querySchema), async (c) => {
+  const { query, userId, documentIds, history } = c.req.valid('json') as QueryRequest;
+  const env = c.env;
+
+  return streamSSE(c, async (stream) => {
+    const reasoningPath: string[] = [];
+
+    const emit = async (event: string, data: unknown) => {
+      await stream.writeSSE({ event, data: JSON.stringify(data) });
+    };
+
+    try {
+      // ─── Stage 0: Cache + Learning Log Check
+      await emit('thinking', { stage: 'cache_check', message: 'Checking semantic cache and ASI learning memory…' });
+
+      const cached = await getFromCache(query, env);
+      if (cached) {
+        reasoningPath.push('Cache hit: L1 exact or L2 semantic match');
+        await emit('done', {
+          answer: cached.response,
+          citations: cached.citations,
+          confidence: cached.score,
+          asiScore: cached.asiScore,
+          reasoningPath: [...cached.reasoningPath, ...reasoningPath],
+          sources: cached.sources,
+          fromCache: true,
+        });
+        return;
+      }
+
+      const learned = await getSimilarLearning(query, env);
+      if (learned && learned.wasImproved && learned.improvedAnswer && learned.improvedAnswer.length > 500) {
+        const msg = `[ASI Superpowers] Retrieved improved answer from Neon DB (Gap was ${(learned.gapScore * 100).toFixed(1)}%)`;
+        reasoningPath.push(msg);
+        await emit('thinking', { stage: 'learning_hit', message: msg });
+        await emit('done', {
+          answer: learned.improvedAnswer,
+          citations: [],
+          confidence: learned.improvedScore || 0.90,
+          asiScore: learned.improvedScore || 0.90,
+          reasoningPath,
+          sources: [],
+          fromLearning: true,
+        });
+        return;
+      }
+
+      // ─── Stage 1: Query Classification + RPD Budget Check
+      await emit('thinking', { stage: 'classifying', message: 'Classifying query intent and checking rate limits…' });
+      const geminiBudget = await checkRPDLimit('gemini', env);
+      const groqBudget = await checkRPDLimit('groq', env);
+      if (!geminiBudget.allowed || !groqBudget.allowed) {
+        await emit('error', { message: ERROR_QUOTA_PRIMARY });
+        return;
+      }
+
+      const queryType = classifyQuery(query);
+      reasoningPath.push(`Query classified as: ${queryType}`);
+      await emit('classified', { queryType });
+
+      // ─── Stage 2: Decompose + Rewrite
+      await emit('thinking', { stage: 'decomposing', message: 'Decomposing and rewriting query for maximum recall…' });
+      const decomposed = queryType === 'complex'
+        ? await callWithFallback(
+            () => decomposeQuery(query, env),
+            async () => [query],
+            'groq',
+            TIMEOUT_GROQ
+          )
+        : [query];
+      if (decomposed.length > 1) {
+        await trackRPDCall('groq', env);
+        reasoningPath.push(`Decomposed: ${decomposed.length} sub-questions`);
+      }
+
+      const { rewritten, variants } = await callWithFallback(
+        () => rewriteAndExpand(query, queryType, env, history),
+        async () => ({ rewritten: query, variants: [query] }),
+        'groq',
+        TIMEOUT_GROQ
+      );
+      await trackRPDCall('groq', env);
+      reasoningPath.push(`Rewritten: '${rewritten}'`);
+      if (variants.length > 0) reasoningPath.push(`Expanded: ${variants.length + 1} semantic variants`);
+
+      // ─── Stage 3: Hybrid Retrieval (Neon DB: pgvector + BM25)
+      await emit('thinking', { stage: 'retrieving', message: `Executing Hybrid Search (pgvector 768d + BM25 Indonesian) across ${decomposed.length + 1 + variants.length} variants…` });
+      const searchQueries = [...decomposed, rewritten, ...variants].filter(Boolean);
+      const allResults = await Promise.all(
+        searchQueries.map(q => adaptiveRetrieve(q, queryType, env, documentIds))
+      );
+      let topResults = allResults.flat().sort((a, b) => b.score - a.score).slice(0, TOP_K_RESULTS);
+      reasoningPath.push(`Hybrid retrieval: ${topResults.length} chunks retrieved`);
+      await emit('retrieved', { count: topResults.length, queryType });
+
+      if (queryType === 'complex' || shouldAbstain(topResults)) {
+        await emit('thinking', { stage: 'multi_hop', message: 'Confidence low — escalating to Multi-Hop Graph Retrieval…' });
+        const { results: hopResults, hops } = await multiHopRetrieve(query, queryType, env, documentIds);
+        if (hops.length > 0) {
+          topResults = hopResults;
+          reasoningPath.push(...hops);
+        }
+      }
+
+      if (topResults.length > TOP_K_PRUNED) {
+        topResults = await rerankChunks(topResults, query, env);
+        reasoningPath.push(`Rerank applied: ${topResults.length} chunks re-scored`);
+      }
+
+      const isStructuredQuery = queryType === 'table' || queryType === 'complex' || /pustaka|tabel|gambar|sistematika/i.test(query);
+      if (isStructuredQuery) {
+        topResults = await expandContiguousChunks(topResults, env, 5);
+      } else {
+        topResults = topResults.slice(0, TOP_K_PRUNED);
+      }
+      topResults = compressContext(topResults, query);
+
+      if (shouldAbstain(topResults)) {
+        await emit('done', { answer: ERROR_NOT_FOUND, citations: [], confidence: 0, asiScore: 0, reasoningPath, sources: [] });
+        return;
+      }
+
+      const { citations, sources, context } = await buildCitations(topResults, env);
+
+      // ─── Stage 4: LLM Generation (Multi-Provider Cascade)
+      await emit('thinking', { stage: 'generating', message: 'Generating answer via multi-provider LLM cascade (Gemini → Groq → Cohere → OpenRouter → Workers AI)…' });
+
+      const geminiLimit = await checkProviderRateLimit('gemini', env);
+      const groqLimit = await checkProviderRateLimit('groq', env);
+
+      const generateFn = () => generateAnswer(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env);
+      const groqFn = () => generateGroq(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env);
+      const cohereFn = () => generateCohere(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env);
+      const openrouterFn = () => generateOpenRouter(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env);
+      const cloudflareFn = () => generateCloudflareAI(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env);
+
+      let answer = await callWithFallback(
+        async () => {
+          if (!geminiLimit.allowed) throw new Error('Gemini RPM limit exceeded');
+          const result = await generateFn();
+          await trackRPDCall('gemini', env);
+          return result;
+        },
+        async () => callWithFallback(
+          groqFn,
+          async () => callWithFallback(
+            cohereFn,
+            async () => callWithFallback(
+              openrouterFn,
+              async () => {
+                try { return await cloudflareFn(); }
+                catch { return generateDeterministic(query, context, citations.map(c => `${c.docName}, Hal ${c.page}`)); }
+              },
+              'openrouter', TIMEOUT_OPENROUTER
+            ),
+            'cohere', TIMEOUT_COHERE
+          ),
+          'groq', TIMEOUT_GROQ
+        ),
+        'gemini', TIMEOUT_GEMINI
+      );
+
+      await emit('generated', { previewLength: answer.length });
+
+      // ─── Stage 5: Grounding Validation
+      await emit('thinking', { stage: 'grounding', message: 'Validating answer grounding and citation accuracy…' });
+      const { score: groundingScore, isGrounded } = validateGrounding(answer, context);
+      reasoningPath.push(`Grounding score: ${groundingScore.toFixed(2)} (${isGrounded ? 'pass' : 'fail'})`);
+      await emit('grounded', { score: groundingScore, isGrounded });
+
+      // ─── Stage 6: Self-Critic + Corrective RAG Loop
+      await emit('thinking', { stage: 'self_critic', message: 'Running Self-Critic evaluation and Corrective RAG loop…' });
+      let criticResult = await callWithFallback(
+        async () => {
+          const result = await selfCritic(query, answer, context, env);
+          await trackRPDCall('groq', env);
+          return result;
+        },
+        async () => ({ score: CRITIC_FALLBACK_SCORE, issues: ['Critic unavailable'], verdict: 'retry' as const }),
+        'groq', TIMEOUT_GROQ
+      );
+      reasoningPath.push(`Self-critic: ${criticResult.score.toFixed(2)} (${criticResult.verdict})`);
+      await emit('critic', { score: criticResult.score, verdict: criticResult.verdict });
+
+      let finalAnswer = answer;
+      let finalScore = Math.max(groundingScore, criticResult.score);
+
+      let retryCount = 0;
+      while (criticResult.verdict === 'retry' && retryCount < MAX_CORRECTIVE_RETRIES) {
+        retryCount++;
+        await emit('thinking', { stage: 'corrective', message: `Corrective RAG retry ${retryCount} of ${MAX_CORRECTIVE_RETRIES}…` });
+        reasoningPath.push(`Corrective RAG attempt ${retryCount}`);
+        const correctiveAction = await callWithFallback(
+          async () => {
+            const result = await correctiveRAG(query, { strategy: criticResult.issues.join(', '), score: criticResult.score, issues: criticResult.issues }, env);
+            await trackRPDCall('groq', env);
+            return result;
+          },
+          async () => ({ strategy: 'rewrite' as const, adjusted_query: query }),
+          'groq', TIMEOUT_GROQ
+        );
+        const retryAnswer = await callWithFallback(
+          async () => { const r = await generateAnswer(correctiveAction.adjusted_query || query, context, citations.map(c => `${c.docName}, Hal ${c.page}`), env); await trackRPDCall('gemini', env); return r; },
+          async () => answer,
+          'gemini', TIMEOUT_GEMINI
+        );
+        const { score: retryGS } = validateGrounding(retryAnswer, context);
+        criticResult = await callWithFallback(
+          async () => { const r = await selfCritic(correctiveAction.adjusted_query || query, retryAnswer, context, env); await trackRPDCall('groq', env); return r; },
+          async () => ({ score: retryGS, issues: [], verdict: retryGS >= CRITIC_PASS_THRESHOLD ? 'pass' as const : 'abstain' as const }),
+          'groq', TIMEOUT_GROQ
+        );
+        if (criticResult.score > finalScore) { finalAnswer = retryAnswer; finalScore = criticResult.score; }
+        await emit('critic', { score: criticResult.score, verdict: criticResult.verdict, retry: retryCount });
+      }
+
+      if (criticResult.verdict === 'abstain') {
+        await trackNegativePattern(query, env);
+        finalAnswer = ERROR_ABSTAIN;
+        finalScore = 0;
+      }
+
+      const asiScore = (finalScore + (shouldAnswer(topResults) ? 1 : 0)) / 2;
+      reasoningPath.push(`ASI score: ${asiScore.toFixed(2)}`);
+
+      // Cache the result
+      const queryEmbForCache = await callWithFallback(() => embedQuery(query, env), async () => [], 'gemini', TIMEOUT_FAST);
+      if (finalAnswer && !finalAnswer.includes(ERROR_PREFIX)) {
+        await setCache(query, {
+          query, queryEmbedding: queryEmbForCache, response: finalAnswer,
+          citations, sources, score: finalScore, asiScore,
+          hitCount: 1, timestamp: Date.now(),
+          reasoningPath,
+        }, env);
+      }
+
+      // Background self-improvement (non-blocking)
+      if (finalAnswer) {
+        c.executionCtx.waitUntil(
+          runSelfImprovementAgent({ query, finalAnswer, groundingScore: finalScore, citations }, env)
+        );
+      }
+
+      // ─── Stage 7: Emit final done event
+      await emit('done', {
+        answer: finalAnswer,
+        citations,
+        confidence: finalScore,
+        asiScore,
+        reasoningPath,
+        sources,
+      });
+
+    } catch (error: any) {
+      await stream.writeSSE({ event: 'error', data: JSON.stringify({ message: error.message || 'Internal ASI pipeline error' }) });
+    }
+  });
 });
 
 export default ragRouter;

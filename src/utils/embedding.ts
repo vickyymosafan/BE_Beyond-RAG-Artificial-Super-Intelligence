@@ -23,7 +23,9 @@ export async function batchEmbedQueries(
   env: CloudflareBindings
 ): Promise<number[][]> {
   if (queries.length === 0) return [];
-  const apiKey = env.CLOUDFLARE_API_TOKEN || env.GEMINI_API_KEY; // Known limitation
+  // ─── [SEC-2 FIX] Always use GEMINI_API_KEY for Gemini REST API calls.
+  // CLOUDFLARE_API_TOKEN is a different credential and must NOT be sent to Google APIs.
+  const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
 
   const BATCH_SIZE = EMBEDDING_BATCH_SIZE;
@@ -60,7 +62,8 @@ export async function batchEmbedQueries(
 }
 
 async function embedGemini(query: string, env: CloudflareBindings): Promise<number[]> {
-  const apiKey = env.CLOUDFLARE_API_TOKEN || env.GEMINI_API_KEY; // Known limitation
+  // ─── [SEC-2 FIX] Use only GEMINI_API_KEY — never CLOUDFLARE_API_TOKEN for Gemini.
+  const apiKey = env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
 
   const res = await fetch(`${GEMINI_EMBED_URL}?key=${apiKey}`, {
@@ -87,10 +90,14 @@ async function embedWorkersAI(query: string, env: CloudflareBindings): Promise<n
   const accountId = env.CLOUDFLARE_ACCOUNT_ID;
   if (!accountId) throw new Error('CLOUDFLARE_ACCOUNT_ID not configured');
 
+  // ─── [SEC-2 FIX] Workers AI correctly uses CLOUDFLARE_API_TOKEN for Bearer auth.
+  const cfToken = env.CLOUDFLARE_API_TOKEN;
+  if (!cfToken) throw new Error('CLOUDFLARE_API_TOKEN not configured for Workers AI');
+
   const res = await fetch(WORKERS_AI_URL.replace('{account_id}', accountId), {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${env.GEMINI_API_KEY}`,
+      'Authorization': `Bearer ${cfToken}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ text: query }),

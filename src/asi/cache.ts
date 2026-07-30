@@ -23,13 +23,23 @@ export async function getFromCache(
   }
 
   const queryEmb = await embedQuery(query, env);
+  // ─── [PERF-1 FIX] Cloudflare Workers has a hard 50-subrequest limit per invocation.
+  // Cap semantic key iteration to 48 to leave budget for other KV ops in this request.
+  // TODO: For scale, migrate semantic cache to pgvector (ANN search in Neon DB) to remove this cap entirely.
+  const MAX_SEMANTIC_KEYS = 48;
   const cacheKeys = await env.KV_CACHE.list({ prefix: 'semantic:' });
   const dynamicPairs = await getDynamicConceptConflicts(env);
 
   let bestMatch: CacheEntry | null = null;
   let bestScore = 0;
+  let checkedCount = 0;
 
   for (const key of cacheKeys.keys) {
+    if (checkedCount >= MAX_SEMANTIC_KEYS) {
+      console.warn(`[Cache] Semantic scan capped at ${MAX_SEMANTIC_KEYS} entries to avoid subrequest exhaustion.`);
+      break;
+    }
+    checkedCount++;
     const entry = await env.KV_CACHE.get<CacheEntry>(key.name, 'json');
     if (!entry || !entry.response || entry.response.includes(ERROR_PREFIX)) continue;
 

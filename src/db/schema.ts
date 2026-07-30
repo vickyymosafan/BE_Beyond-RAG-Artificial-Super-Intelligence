@@ -64,7 +64,13 @@ export const DB_SCHEMA_PG = [
   `CREATE INDEX IF NOT EXISTS idx_chunks_content_type ON chunks(content_type)`,
   `CREATE INDEX IF NOT EXISTS idx_chunks_page ON chunks(doc_id, page_number)`,
   `CREATE INDEX IF NOT EXISTS idx_chunks_tsv ON chunks USING GIN(tsv_content)`,
-  `CREATE INDEX IF NOT EXISTS idx_chunks_embedding ON chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)`,
+  // ─── [PERF-2 FIX] Upgraded from ivfflat to hnsw for dynamic table vector search.
+  // ivfflat requires centroid clustering at index-creation time; recall degrades for rows
+  // inserted after index build. HNSW is always-accurate and requires no rebuild.
+  // For existing deployments, run:
+  //   DROP INDEX IF EXISTS idx_chunks_embedding;
+  //   CREATE INDEX idx_chunks_embedding ON chunks USING hnsw (embedding vector_cosine_ops);
+  `CREATE INDEX IF NOT EXISTS idx_chunks_embedding ON chunks USING hnsw (embedding vector_cosine_ops)`,
   `CREATE INDEX IF NOT EXISTS idx_tables_doc_id ON extracted_tables(doc_id)`,
   `CREATE INDEX IF NOT EXISTS idx_images_doc_id ON extracted_images(doc_id)`,
   `CREATE INDEX IF NOT EXISTS idx_doc_versions_doc_id ON document_versions(doc_id)`,

@@ -19,13 +19,25 @@ import { ingestDocument } from '../ingestion';
 
 const adminRouter = new Hono<{ Bindings: CloudflareBindings }>();
 
-// Unauthenticated Admin endpoints
+// ─── [SEC-1 FIX] Unauthenticated endpoint: Login only ───────────────────────
+// Credentials are read from Worker environment bindings (ADMIN_USERNAME, ADMIN_PASSWORD).
+// Never use hardcoded fallback credentials in production.
 adminRouter.post('/login', zValidator('json', z.object({
   username: z.string().min(1),
   password: z.string().min(1),
 })), async (c) => {
   const { username, password } = c.req.valid('json');
-  if (username !== 'admin' || password !== 'admin123') {
+
+  const validUser = c.env.ADMIN_USERNAME;
+  const validPass = c.env.ADMIN_PASSWORD;
+
+  if (!validUser || !validPass) {
+    // Prevent login if credentials are not configured in environment
+    console.error('[SEC] ADMIN_USERNAME or ADMIN_PASSWORD not configured in Worker env bindings.');
+    return c.json({ error: 'Admin credentials not configured on server.' }, 503);
+  }
+
+  if (username !== validUser || password !== validPass) {
     return c.json({ error: 'Invalid credentials' }, 401);
   }
 
@@ -36,7 +48,11 @@ adminRouter.post('/login', zValidator('json', z.object({
   const h = btoa(JSON.stringify(header)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
   const p = btoa(JSON.stringify(payload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 
-  const secret = c.env.JWT_SECRET || 'dev-secret-change-in-production';
+  const secret = c.env.JWT_SECRET;
+  if (!secret) {
+    console.error('[SEC] JWT_SECRET not configured in Worker env bindings.');
+    return c.json({ error: 'JWT secret not configured on server.' }, 503);
+  }
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
   const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${h}.${p}`));
   const s = btoa(String.fromCharCode(...new Uint8Array(sig))).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
@@ -44,14 +60,14 @@ adminRouter.post('/login', zValidator('json', z.object({
   return c.json({ token: `${h}.${p}.${s}`, expiresAt: (now + 86400) * 1000 });
 });
 
-// Cache clearing endpoint (accessible for maintenance)
+// ─── [SEC-1 FIX] All routes below this line are protected by adminAuth ────────
+adminRouter.use('*', adminAuth);
+
+// Cache clearing endpoint — now PROTECTED by adminAuth above
 adminRouter.post('/cache/clear', async (c) => {
   const deleted = await clearAllCache(c.env);
   return c.json({ success: true, deleted });
 });
-
-// Authenticated Admin routes middleware
-adminRouter.use('*', adminAuth);
 
 // Document Management
 adminRouter.get('/documents', async (c) => {
