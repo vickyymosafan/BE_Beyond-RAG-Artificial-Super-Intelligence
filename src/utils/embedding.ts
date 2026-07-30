@@ -18,16 +18,19 @@ export async function embedQuery(
   return new Array(EMBEDDING_DIMENSION).fill(0);
 }
 
+function getGeminiApiKey(env: CloudflareBindings): string {
+  const rawKey = env.GEMINI_API_KEY;
+  if (!rawKey) throw new Error('GEMINI_API_KEY not configured');
+  const keys = rawKey.split(',').map(k => k.trim()).filter(Boolean);
+  return keys[Math.floor(Math.random() * keys.length)] || rawKey;
+}
+
 export async function batchEmbedQueries(
   queries: string[],
   env: CloudflareBindings
 ): Promise<number[][]> {
   if (queries.length === 0) return [];
-  // ─── [SEC-2 FIX] Always use GEMINI_API_KEY for Gemini REST API calls.
-  // CLOUDFLARE_API_TOKEN is a different credential and must NOT be sent to Google APIs.
-  const apiKey = env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
-
+  const apiKey = getGeminiApiKey(env);
   const BATCH_SIZE = EMBEDDING_BATCH_SIZE;
   const allEmbeddings: number[][] = [];
 
@@ -62,10 +65,7 @@ export async function batchEmbedQueries(
 }
 
 async function embedGemini(query: string, env: CloudflareBindings): Promise<number[]> {
-  // ─── [SEC-2 FIX] Use only GEMINI_API_KEY — never CLOUDFLARE_API_TOKEN for Gemini.
-  const apiKey = env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('GEMINI_API_KEY not configured');
-
+  const apiKey = getGeminiApiKey(env);
   const res = await fetch(`${GEMINI_EMBED_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
